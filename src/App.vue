@@ -2,20 +2,23 @@
   <div id="app">
     <Header @toggle-sidebar="toggleSidebar" />
     <Sidebar :showSidebar="showSidebar" @show-content="showContent" />
-    <main :class="{ 'mobile-content': isMobile && !showSidebar }">
+    <main v-if="!isMobile || !showSidebar" :class="{ 'mobile-content': isMobile && !showSidebar }">
       <router-view />
     </main>
+    <FooterComponent v-if="!isMobile || !showSidebar" />
   </div>
 </template>
 
 <script>
 import Header from './components/Header.vue';
 import Sidebar from './components/Sidebar.vue';
+import FooterComponent from './components/Footer.vue';
 
 export default {
   components: {
     Header,
-    Sidebar
+    Sidebar,
+    FooterComponent
   },
   data() {
     return {
@@ -49,7 +52,8 @@ export default {
       }
     },
     showContent() {
-      this.showSidebar = false; // Hide sidebar on mobile when navigating
+      console.log('showContent called, hiding sidebar');
+      this.showSidebar = false;
     }
   }
 }
@@ -66,7 +70,7 @@ header {
 }
 main {
   flex-grow: 1;
-  padding: 20px;
+  padding: 80px;
 }
 .mobile-content {
   padding: 0;

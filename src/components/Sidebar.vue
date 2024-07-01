@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div :class="['sidebar', { 'sidebar-collapsed': isCollapsed }]" @mouseenter="showSidebar" @mouseleave="hideSidebar" v-if="!isMobile">
+    <div :class="['sidebar', { 'sidebar-collapsed': isCollapsed }]" @mouseenter="toggleSidebar" @mouseleave="hideSidebar" v-if="!isMobile">
       <ul>
         <li v-for="item in menuItems" :key="item.name" class="menu-item">
           <router-link :to="item.path" class="menu-link" @click.native="handleMenuClick">
@@ -23,7 +23,7 @@
 
 <script>
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
-import { faCalendarCheck, faEdit, faPencilAlt, faGraduationCap, faIdCard, faFileAlt, faCalendar, faClock, faBook, faBullhorn, faChartLine } from '@fortawesome/free-solid-svg-icons'
+import { faCalendarCheck, faEdit, faPencilAlt, faGraduationCap, faIdCard, faFileAlt, faCalendar, faClock, faBook, faBullhorn, faChartLine, faHome } from '@fortawesome/free-solid-svg-icons'
 
 export default {
   components: {
@@ -35,6 +35,7 @@ export default {
   data() {
     return {
       menuItems: [
+        { name: 'Beranda', path: '/beranda', icon: faHome},
         { name: 'Presensi Kuliah', path: '/presensi-kuliah', icon: faCalendarCheck },
         { name: 'Ambil KRS', path: '/ambil-krs', icon: faEdit },
         { name: 'Revisi KRS', path: '/revisi-krs', icon: faPencilAlt },
@@ -59,7 +60,7 @@ export default {
     window.removeEventListener('resize', this.checkWindowSize);
   },
   methods: {
-    showSidebar() {
+    toggleSidebar() {
       this.isCollapsed = false;
     },
     hideSidebar() {
@@ -70,11 +71,11 @@ export default {
     },
     navigateTo(path) {
       this.$router.push(path);
-      this.$emit('show-content'); // Emit to hide sidebar and mobile menu when navigating on mobile
+      this.$emit('show-content');
     },
     handleMenuClick() {
       if (this.isMobile) {
-        this.$emit('show-content'); // Emit to hide sidebar and mobile menu when navigating on mobile
+        this.$emit('show-content');
       }
     }
   }
@@ -86,7 +87,7 @@ export default {
   width: 60px;
   background-color: #444;
   color: white;
-  height: 100vh;
+  height: 90vh;
   position: fixed;
   overflow-y: auto;
   transition: width 0.3s;
@@ -99,6 +100,9 @@ export default {
 .sidebar-collapsed .menu-name {
   display: none;
 }
+.sidebar-collapsed .icon {
+  font-size: 20px;
+}
 ul {
   list-style: none;
   padding: 0;
@@ -106,7 +110,7 @@ ul {
   flex-grow: 1;
 }
 li {
-  padding: 15px;
+  padding: 20px;
   text-align: left;
   white-space: nowrap; /* Prevent text wrapping */
 }
@@ -125,10 +129,12 @@ a {
 .icon {
   margin-right: 10px;
   min-width: 20px; /* Ensures the icon area is fixed */
+  font-size: 20px;
 }
 .menu-name {
   margin-left: 10px; /* Adjust this value as needed */
   white-space: nowrap; /* Prevent text wrapping */
+  font-size: 20px;
 }
 .fade-enter-active, .fade-leave-active {
   transition: opacity 0.5s;
@@ -143,36 +149,40 @@ a {
   grid-template-columns: repeat(2, 1fr);
   gap: 10px;
   padding: 20px;
-  height: 100vh;
+  height: calc(100vh - 40px); /* Mengurangi padding atas dan bawah */
   box-sizing: border-box;
+  z-index: 100;
 }
 .mobile-menu-item {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 15px;
   background-color: #444;
   color: white;
   text-align: center;
   transition: background-color 0.3s;
-  height: calc(50vh - 30px); /* Adjust to fit the screen with padding */
   cursor: pointer; /* Indicate that the item is clickable */
+  border-radius: 10px; /* Menambahkan sudut melengkung */
+  width: calc((100vw - 60px) / 2); /* Menyesuaikan lebar agar sesuai dengan setengah lebar layar, memperhitungkan padding dan gap */
+  height: calc((100vw - 60px) / 2); /* Menyesuaikan tinggi agar sama dengan lebar untuk membuatnya persegi */
+  flex-direction: column; /* Menambahkan ini agar konten di dalamnya berada dalam kolom */
 }
 .mobile-menu-item:hover {
   background-color: #666;
 }
 .mobile-menu-link {
   display: flex;
-  flex-direction: column;
+  flex-direction: column; /* Mengubah arah flex menjadi kolom */
   align-items: center;
   text-decoration: none;
   color: white;
 }
 .mobile-icon {
-  font-size: 24px;
+  font-size: 44px;
   margin-bottom: 5px;
 }
 .mobile-menu-name {
-  font-size: 16px;
+  font-size: 22px;
+  margin-top: 15px; /* Tambahkan margin atas untuk memberi jarak antara ikon dan nama menu */
 }
 </style>
