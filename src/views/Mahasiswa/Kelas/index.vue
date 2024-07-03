@@ -12,7 +12,9 @@
             <th>Nama Mata Kuliah</th>
             <th>Semester</th>
             <th>Jumlah SKS</th>
+            <th>Ruang Kelas</th>
             <th>Nama Dosen Pengampu</th>
+            <th>Presensi</th>
           </tr>
         </thead>
         <tbody>
@@ -23,28 +25,17 @@
             <td>{{ jadwal.namaMataKuliah }}</td>
             <td>{{ jadwal.semester }}</td>
             <td>{{ jadwal.sks }}</td>
+            <td>{{ jadwal.ruangKelas }}</td>
             <td>{{ jadwal.namaDosen }}</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-
-    <!-- Presensi -->
-    <div class="presensi">
-      <h1>Presensi</h1>
-      <table>
-        <thead>
-          <tr>
-            <th>Nama Mata Kuliah</th>
-            <th>Waktu</th>
-            <th>Status</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="(sesi, index) in presensi" :key="`presensi-${index}`">
-            <td>{{ sesi.namaMataKuliah }}</td>
-            <td>{{ sesi.waktu }}</td>
-            <td>{{ sesi.status }}</td>
+            <td>
+              <button
+                v-if="isCurrentClass(jadwal.waktu)"
+                :class="{ hadir: jadwal.hadir }"
+                @click="togglePresensi(jadwal)"
+              >
+                {{ jadwal.hadir ? 'Hadir' : 'Masuk' }}
+              </button>
+            </td>
           </tr>
         </tbody>
       </table>
@@ -58,51 +49,57 @@ export default {
     return {
       jadwalKuliah: [
         {
+          ruangKelas: 'A101',
           hari: 'Senin',
           waktu: '08:00 - 10:00',
           kodeMataKuliah: 'IF101',
           namaMataKuliah: 'Pemrograman Dasar',
           semester: 1,
           sks: 3,
-          namaDosen: 'Dr. John Doe'
+          namaDosen: 'Dr. John Doe',
+          hadir: false
         },
         {
+          ruangKelas: 'B202',
           hari: 'Rabu',
-          waktu: '10:00 - 12:00',
+          waktu: '19:00 - 20:00',
           kodeMataKuliah: 'IF102',
           namaMataKuliah: 'Struktur Data',
           semester: 2,
           sks: 3,
-          namaDosen: 'Dr. Jane Smith'
+          namaDosen: 'Dr. Jane Smith',
+          hadir: false
         },
-        // Tambahkan jadwal lainnya sesuai kebutuhan
-      ],
-      presensi: [
-        {
-          namaMataKuliah: 'Pemrograman Dasar',
-          waktu: '08:00 - 10:00',
-          status: 'Tidak Hadir'
-        },
-        {
-          namaMataKuliah: 'Struktur Data',
-          waktu: '10:00 - 12:00',
-          status: 'Tidak Hadir'
-        },
-        // Tambahkan data presensi sesuai kebutuhan
+        // Add more schedules as needed
       ]
     };
+  },
+  methods: {
+    isCurrentClass(waktu) {
+      const [start, end] = waktu.split(' - ').map(time => this.parseTime(time));
+      const now = new Date();
+      const currentTime = now.getHours() * 60 + now.getMinutes();
+      return currentTime >= start && currentTime <= end;
+    },
+    parseTime(time) {
+      const [hours, minutes] = time.split(':').map(Number);
+      return hours * 60 + minutes;
+    },
+    togglePresensi(jadwal) {
+      jadwal.hadir = !jadwal.hadir;
+    }
   }
 };
 </script>
 
-<style>
+<style scoped>
 .kelas-container {
   max-width: 800px;
   margin: 0 auto;
   padding: 20px;
 }
 
-.jadwal-kuliah, .presensi {
+.jadwal-kuliah {
   text-align: center;
   margin-bottom: 40px;
 }
@@ -129,5 +126,22 @@ tr:nth-child(even) {
 
 tr:hover {
   background-color: #f1f1f1;
+}
+
+button {
+  padding: 10px 20px;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+button.hadir {
+  background-color: #2ecc71;
+  color: white;
+}
+
+button:not(.hadir) {
+  background-color: #e0e0e0;
+  color: #555;
 }
 </style>
