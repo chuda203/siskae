@@ -1,11 +1,11 @@
 <template>
   <div id="app">
-    <Header @toggle-sidebar="toggleSidebar" />
-    <Sidebar :showSidebar="showSidebar" @show-content="showContent" />
-    <main v-if="!isMobile || !showSidebar" :class="{ 'mobile-content': isMobile && !showSidebar }">
+    <Header v-if="auth.isAuthenticated" @toggle-sidebar="toggleSidebar" />
+    <Sidebar v-if="auth.isAuthenticated" :showSidebar="showSidebar" @show-content="showContent" />
+    <main :class="{ 'mobile-content': isMobile && !showSidebar }">
       <router-view />
     </main>
-    <FooterComponent v-if="!isMobile || !showSidebar" />
+    <FooterComponent v-if="auth.isAuthenticated && (!isMobile || !showSidebar)" />
   </div>
 </template>
 
@@ -13,12 +13,17 @@
 import Header from './components/Header.vue';
 import Sidebar from './components/Sidebar.vue';
 import FooterComponent from './components/Footer.vue';
+import { inject } from 'vue';
 
 export default {
   components: {
     Header,
     Sidebar,
     FooterComponent
+  },
+  setup() {
+    const auth = inject('auth'); // Inject auth state
+    return { auth };
   },
   data() {
     return {
@@ -52,7 +57,6 @@ export default {
       }
     },
     showContent() {
-      console.log('showContent called, hiding sidebar');
       this.showSidebar = false;
     }
   }

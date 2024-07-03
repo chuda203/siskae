@@ -1,4 +1,4 @@
-import { createApp } from 'vue';
+import { createApp, reactive } from 'vue';
 import App from './App.vue';
 import router from './router';
 import { library } from '@fortawesome/fontawesome-svg-core';
@@ -7,7 +7,19 @@ import { faHome, faCalendarCheck, faEdit, faPencilAlt, faGraduationCap, faIdCard
 
 library.add(faHome, faCalendarCheck, faEdit, faPencilAlt, faGraduationCap, faIdCard, faFileAlt, faCalendar, faClock, faBook, faBullhorn, faChartLine);
 
-createApp(App)
-  .component('font-awesome-icon', FontAwesomeIcon)
+const app = createApp(App);
+
+// Inisialisasi status autentikasi
+const authState = reactive({
+  isAuthenticated: false,
+  role: 'mahasiswa' // default role
+});
+
+// Menambahkan authState ke router options
+router.options.auth = authState;
+
+app.provide('auth', authState); // Provide auth state
+
+app.component('font-awesome-icon', FontAwesomeIcon)
   .use(router)
   .mount('#app');

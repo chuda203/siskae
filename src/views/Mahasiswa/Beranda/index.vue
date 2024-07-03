@@ -17,7 +17,7 @@
   </template>
   
 <script>
-import calendarImage from '../assets/academic-calender.png'; // Mengimpor gambar
+import calendarImage from '../../../assets/academic-calender.png';
 
 export default {
   data() {

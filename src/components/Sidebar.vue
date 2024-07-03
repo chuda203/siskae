@@ -24,6 +24,7 @@
 <script>
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { faCalendarCheck, faEdit, faPencilAlt, faGraduationCap, faIdCard, faFileAlt, faCalendar, faClock, faBook, faBullhorn, faChartLine, faHome } from '@fortawesome/free-solid-svg-icons'
+import { inject } from 'vue';
 
 export default {
   components: {
@@ -32,25 +33,43 @@ export default {
   props: {
     showSidebar: Boolean
   },
+  setup() {
+    const auth = inject('auth'); // Inject auth state
+    return { auth };
+  },
   data() {
     return {
-      menuItems: [
-        { name: 'Beranda', path: '/beranda', icon: faHome},
-        { name: 'Presensi Kuliah', path: '/presensi-kuliah', icon: faCalendarCheck },
-        { name: 'Ambil KRS', path: '/ambil-krs', icon: faEdit },
-        { name: 'Revisi KRS', path: '/revisi-krs', icon: faPencilAlt },
-        { name: 'KHS', path: '/khs', icon: faGraduationCap },
-        { name: 'Kartu Ujian', path: '/kartu-ujian', icon: faIdCard },
-        { name: 'Transkrip', path: '/transkrip', icon: faFileAlt },
-        { name: 'Jadwal Kuliah', path: '/jadwal-kuliah', icon: faCalendar },
-        { name: 'Jadwal Ujian', path: '/jadwal-ujian', icon: faClock },
-        { name: 'Skripsi', path: '/skripsi', icon: faBook },
-        { name: 'Pengumuman', path: '/pengumuman', icon: faBullhorn },
-        { name: 'Evaluasi', path: '/evaluasi', icon: faChartLine }
-      ],
       isCollapsed: true, // Initially collapsed
       isMobile: false // Initially not mobile
     };
+  },
+  computed: {
+    menuItems() {
+      // Menu items for mahasiswa
+      const mahasiswaMenu = [
+        { name: 'Beranda', path: '/', icon: faHome },
+        { name: 'Kelas', path: '/kelas', icon: faCalendarCheck },
+        { name: 'KRS', path: '/krs', icon: faEdit },
+        { name: 'Publikasi', path: '/publikasi', icon: faPencilAlt },
+        { name: 'Saran', path: '/saran', icon: faGraduationCap },
+        { name: 'Transkrip', path: '/transkrip', icon: faFileAlt },
+        { name: 'Ujian', path: '/ujian', icon: faCalendar }
+      ];
+
+      // Menu items for dosen
+      const dosenMenu = [
+        { name: 'Beranda', path: '/', icon: faHome },
+        { name: 'Bimbingan', path: '/bimbingan', icon: faBullhorn },
+        { name: 'Mata Kuliah', path: '/mata-kuliah', icon: faBook },
+        { name: 'Publikasi', path: '/publikasi', icon: faPencilAlt },
+        { name: 'Riwayat', path: '/riwayat', icon: faChartLine },
+        { name: 'Saran', path: '/saran', icon: faGraduationCap },
+        { name: 'Ujian', path: '/ujian', icon: faCalendar }
+      ];
+
+      // Return the appropriate menu based on the user's role
+      return this.auth.role === 'dosen' ? dosenMenu : mahasiswaMenu;
+    }
   },
   mounted() {
     this.checkWindowSize();
