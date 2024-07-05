@@ -48,6 +48,7 @@ export default {
       // Menu items for mahasiswa
       const mahasiswaMenu = [
         { name: 'Beranda', path: '/', icon: faHome },
+        { name: 'Bimbingan', path: '/bimbingan', icon: faBullhorn },
         { name: 'Kelas', path: '/kelas', icon: faCalendarCheck },
         { name: 'KRS', path: '/krs', icon: faEdit },
         { name: 'Publikasi', path: '/publikasi', icon: faPencilAlt },
@@ -106,8 +107,8 @@ export default {
   width: 60px;
   background-color: #444;
   color: white;
-  height: 90vh;
-  position: fixed;
+  height: 100vh;
+  position: absolute;
   overflow-y: auto;
   transition: width 0.3s;
   display: flex;
