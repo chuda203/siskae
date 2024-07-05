@@ -1,29 +1,26 @@
 <template>
-  <div class="kelas-container">
-    <!-- Jadwal Kuliah -->
-    <div class="jadwal-kuliah">
-      <h1>Jadwal Kuliah</h1>
-      <table>
+  <div class="container">
+    <div class="matakuliah-card">
+      <h2>Mata Kuliah</h2>
+      <table class="matakuliah-table">
         <thead>
           <tr>
-            <th>Hari</th>
-            <th>Waktu</th>
+            <th>Presensi</th>
+            <th>Input Nilai</th>
             <th>Kode Mata Kuliah</th>
             <th>Nama Mata Kuliah</th>
-            <th>Semester</th>
             <th>Jumlah SKS</th>
-            <th>Ruang Kelas</th>
+            <th>Informasi Ruang Kelas</th>
           </tr>
         </thead>
         <tbody>
-          <tr v-for="(jadwal, index) in filteredJadwalKuliah" :key="index">
-            <td>{{ jadwal.hari }}</td>
-            <td>{{ jadwal.waktu }}</td>
-            <td>{{ jadwal.kodeMataKuliah }}</td>
-            <td>{{ jadwal.namaMataKuliah }}</td>
-            <td>{{ jadwal.semester }}</td>
-            <td>{{ jadwal.sks }}</td>
-            <td>{{ jadwal.ruangKelas }}</td>
+          <tr v-for="matkul in mataKuliahData" :key="matkul.kode">
+            <td><button @click="showPresensi(matkul.kode)">Presensi</button></td>
+            <td><button @click="inputNilai(matkul.kode)">Input Nilai</button></td>
+            <td>{{ matkul.kode }}</td>
+            <td>{{ matkul.nama }}</td>
+            <td>{{ matkul.sks }}</td>
+            <td>{{ matkul.ruang }}</td>
           </tr>
         </tbody>
       </table>
@@ -33,87 +30,75 @@
 
 <script>
 export default {
+  name: 'MataKuliah',
   data() {
     return {
-      jadwalKuliah: [
-        {
-          ruangKelas: 'A101',
-          hari: 'Senin',
-          waktu: '08:00 - 10:00',
-          kodeMataKuliah: 'IF101',
-          namaMataKuliah: 'Pemrograman Dasar',
-          semester: 1,
-          sks: 3,
-          namaDosen: 'Dr. John Doe', // Dummy data for instructor
-        },
-        {
-          ruangKelas: 'B202',
-          hari: 'Rabu',
-          waktu: '19:00 - 20:00',
-          kodeMataKuliah: 'IF102',
-          namaMataKuliah: 'Struktur Data',
-          semester: 2,
-          sks: 3,
-          namaDosen: 'Dr. Jane Smith', // Dummy data for instructor
-        },
-        // Add more schedules as needed
+      mataKuliahData: [
+        { kode: 'IF101', nama: 'Pemrograman Dasar', sks: 3, ruang: 'A101' },
+        { kode: 'IF102', nama: 'Struktur Data', sks: 3, ruang: 'A102' },
+        { kode: 'IF103', nama: 'Basis Data', sks: 3, ruang: 'A103' },
+        // Tambahkan data lainnya sesuai kebutuhan
       ],
-      currentUser: 'Dr. John Doe', // Simulated current user (logged-in instructor)
     };
   },
-  computed: {
-    filteredJadwalKuliah() {
-      return this.jadwalKuliah.filter(jadwal => jadwal.namaDosen === this.currentUser);
-    },
-  },
   methods: {
-    isCurrentClass(waktu) {
-      const [start, end] = waktu.split(' - ').map(time => this.parseTime(time));
-      const now = new Date();
-      const currentTime = now.getHours() * 60 + now.getMinutes();
-      return currentTime >= start && currentTime <= end;
+    showPresensi(kode) {
+      alert(`Menampilkan presensi untuk mata kuliah ${kode}`);
+      // Logika untuk menampilkan presensi
     },
-    parseTime(time) {
-      const [hours, minutes] = time.split(':').map(Number);
-      return hours * 60 + minutes;
+    inputNilai(kode) {
+      alert(`Menampilkan input nilai untuk mata kuliah ${kode}`);
+      // Logika untuk menampilkan input nilai
     },
   },
 };
 </script>
 
-<style scoped>
-.kelas-container {
-  max-width: 800px;
-  margin: 0 auto;
+<style>
+.container {
+  display: flex;
+  flex-direction: column;
   padding: 20px;
 }
 
-.jadwal-kuliah {
-  text-align: center;
-  margin-bottom: 40px;
+.matakuliah-card {
+  background-color: white;
+  border-radius: 10px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+  width: 100%; /* Atur lebar mengikuti container */
 }
 
-table {
+.card h2 {
+  margin-bottom: 15px;
+}
+
+.matakuliah-table {
   width: 100%;
   border-collapse: collapse;
-  margin: 20px 0;
 }
 
-th, td {
+.matakuliah-table th,
+.matakuliah-table td {
   border: 1px solid #ddd;
   padding: 8px;
+  text-align: left;
 }
 
-th {
-  background-color: #f4f4f4;
-  font-weight: bold;
+.matakuliah-table th {
+  background-color: #f2f2f2;
 }
 
-tr:nth-child(even) {
-  background-color: #f9f9f9;
+button {
+  padding: 5px 10px;
+  border: none;
+  border-radius: 5px;
+  background-color: #007bff;
+  color: white;
+  cursor: pointer;
 }
 
-tr:hover {
-  background-color: #f1f1f1;
+button:hover {
+  background-color: #0056b3;
 }
 </style>
