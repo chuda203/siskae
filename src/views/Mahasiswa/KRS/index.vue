@@ -9,59 +9,63 @@
     <!-- Ambil KRS -->
     <div v-if="showAmbilKRS" class="ambil-krs">
       <h2>Ambil KRS</h2>
-      <table>
-        <thead>
-          <tr>
-            <th>Ruang Kelas</th>
-            <th>Kode Mata Kuliah</th>
-            <th>Nama Mata Kuliah</th>
-            <th>Jumlah SKS</th>
-            <th>Nilai</th>
-            <th>Aksi</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="(mataKuliah, index) in mataKuliahTersedia.filter(mk => !mk.diambil)" :key="`ambil-${index}`">
-            <td>{{ mataKuliah.ruangKelas }}</td>
-            <td>{{ mataKuliah.kode }}</td>
-            <td>{{ mataKuliah.nama }}</td>
-            <td>{{ mataKuliah.sks }}</td>
-            <td>{{ mataKuliah.nilai || '-' }}</td>
-            <td>
-              <button @click="ambilKRS(mataKuliah)">Ambil KRS</button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Ruang Kelas</th>
+              <th>Kode Mata Kuliah</th>
+              <th>Nama Mata Kuliah</th>
+              <th>Jumlah SKS</th>
+              <th>Nilai</th>
+              <th>Aksi</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="(mataKuliah, index) in mataKuliahTersedia.filter(mk => !mk.diambil)" :key="`ambil-${index}`">
+              <td>{{ mataKuliah.ruangKelas }}</td>
+              <td>{{ mataKuliah.kode }}</td>
+              <td>{{ mataKuliah.nama }}</td>
+              <td>{{ mataKuliah.sks }}</td>
+              <td>{{ mataKuliah.nilai || '-' }}</td>
+              <td>
+                <button @click="ambilKRS(mataKuliah)">Ambil KRS</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </div>
 
     <!-- Revisi KRS -->
     <div v-else class="revisi-krs">
       <h2>Revisi KRS</h2>
-      <table>
-        <thead>
-          <tr>
-            <th>Ruang Kelas</th>
-            <th>Kode Mata Kuliah</th>
-            <th>Nama Mata Kuliah</th>
-            <th>Jumlah SKS</th>
-            <th>Nilai</th>
-            <th>Aksi</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="(mataKuliah, index) in mataKuliahTersedia.filter(mk => mk.diambil)" :key="`revisi-${index}`">
-            <td>{{ mataKuliah.ruangKelas }}</td>
-            <td>{{ mataKuliah.kode }}</td>
-            <td>{{ mataKuliah.nama }}</td>
-            <td>{{ mataKuliah.sks }}</td>
-            <td>{{ mataKuliah.nilai || '-' }}</td>
-            <td>
-              <button @click="hapusKRS(mataKuliah)">Hapus KRS</button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Ruang Kelas</th>
+              <th>Kode Mata Kuliah</th>
+              <th>Nama Mata Kuliah</th>
+              <th>Jumlah SKS</th>
+              <th>Nilai</th>
+              <th>Aksi</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="(mataKuliah, index) in mataKuliahTersedia.filter(mk => mk.diambil)" :key="`revisi-${index}`">
+              <td>{{ mataKuliah.ruangKelas }}</td>
+              <td>{{ mataKuliah.kode }}</td>
+              <td>{{ mataKuliah.nama }}</td>
+              <td>{{ mataKuliah.sks }}</td>
+              <td>{{ mataKuliah.nilai || '-' }}</td>
+              <td>
+                <button @click="hapusKRS(mataKuliah)">Hapus KRS</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </div>
   </div>
 </template>
@@ -118,6 +122,10 @@ export default {
   background-color: #2980b9;
 }
 
+.table-container {
+  overflow-x: auto;
+}
+
 table {
   width: 100%;
   margin-top: 20px;
@@ -168,5 +176,23 @@ button {
 
 span {
   color: #555;
+}
+
+@media (max-width: 600px) {
+  .krs-container {
+    padding: 10px;
+  }
+
+  table, th, td {
+    font-size: 14px;
+  }
+
+  .menu-buttons button {
+    padding: 8px 16px;
+  }
+
+  button {
+    padding: 8px 16px;
+  }
 }
 </style>
