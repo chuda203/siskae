@@ -1,4 +1,6 @@
 <template>
+          <h1 class="title">Jadwal Kuliah</h1>
+
   <div class="main-wrapper">
     <div class="toggle-view-wrapper">
       <div class="view-toggle" @click="toggleView">
@@ -8,7 +10,6 @@
     </div>
     <div class="container">
       <div class="container-content">
-        <h1 class="title">Jadwal Kuliah</h1>
         <div class="buttons-container">
           <button v-if="!tableView" class="filter-button" :class="{'active': selectedHari === 'all'}" @click="selectedHari = 'all'">Semua</button>
           <button v-if="!tableView" class="filter-button" :class="{'active': selectedHari === 'Senin'}" @click="selectedHari = 'Senin'">Senin</button>
@@ -23,6 +24,7 @@
           <div v-for="(jadwal, index) in filteredJadwalKuliah" :key="index" class="card" @click="openDetail(jadwal)">
             <div class="card-header">
               <h3>{{ jadwal.namaMataKuliah }}</h3>
+              <div class="divider"></div>
             </div>
             <div class="card-body">
               <p>{{ jadwal.hari }}, {{ jadwal.waktu }} WIB</p>
@@ -31,7 +33,6 @@
               <button class="presensi-button" :class="{ hadir: jadwal.hadir }" @click.stop="togglePresensi(jadwal)">
                 {{ jadwal.hadir ? 'Hadir' : 'Presensi' }}
               </button>
-              <button class="presensi-history-button" @click.stop="viewPresensiHistory(jadwal)">Riwayat Presensi</button>
             </div>
           </div>
         </div>
@@ -50,7 +51,7 @@
               </tr>
             </thead>
             <tbody>
-              <tr v-for="jadwal in sortedJadwalKuliahTable" :key="jadwal.kodeMataKuliah">
+              <tr v-for="jadwal in sortedJadwalKuliahTable" :key="jadwal.kodeMataKuliah" :class="{ 'gray-row': $index % 2 === 1 }">
                 <td>{{ jadwal.namaMataKuliah }}</td>
                 <td>{{ jadwal.kodeMataKuliah }}</td>
                 <td>{{ jadwal.sks }}</td>
@@ -64,6 +65,22 @@
             </tbody>
           </table>
         </div>
+      </div>
+    </div>
+    <!-- Modal -->
+    <div v-if="showModal" class="modal-overlay" @click="closeModal">
+      <div class="modal-content" @click.stop>
+        <h3 class="modal-title">Detail Jadwal Kuliah</h3>
+        <table class="detail-table">
+          <tr><td><strong>Nama Mata Kuliah</strong></td><td>{{ selectedJadwal.namaMataKuliah }}</td></tr>
+          <tr><td><strong>Kode Mata Kuliah</strong></td><td>{{ selectedJadwal.kodeMataKuliah }}</td></tr>
+          <tr><td><strong>SKS</strong></td><td>{{ selectedJadwal.sks }}</td></tr>
+          <tr><td><strong>Nama Dosen</strong></td><td>{{ selectedJadwal.namaDosen }}</td></tr>
+          <tr><td><strong>Semester</strong></td><td>{{ selectedJadwal.semester }}</td></tr>
+          <tr><td><strong>Hari</strong></td><td>{{ selectedJadwal.hari }}</td></tr>
+          <tr><td><strong>Waktu</strong></td><td>{{ selectedJadwal.waktu }} WIB</td></tr>
+          <tr><td><strong>Ruang Kelas</strong></td><td>{{ selectedJadwal.ruangKelas }}</td></tr>
+        </table>
       </div>
     </div>
   </div>
@@ -116,7 +133,6 @@ export default {
         // More schedules...
       ],
       showModal: false,
-      showPresensiModal: false,
       selectedJadwal: {}
     };
   },
@@ -177,13 +193,6 @@ export default {
     },
     closeModal() {
       this.showModal = false;
-    },
-    viewPresensiHistory(jadwal) {
-      this.selectedJadwal = jadwal;
-      this.showPresensiModal = true;
-    },
-    closePresensiModal() {
-      this.showPresensiModal = false;
     }
   }
 };
@@ -198,7 +207,7 @@ export default {
 
 .toggle-view-wrapper {
   position: absolute;
-  right: 280px;
+  right: 120px;
   top: 25px;
 }
 
@@ -209,6 +218,8 @@ export default {
   flex-wrap: wrap;
   padding: 20px;
   width: 100%;
+  height: 85vh;
+  overflow: hidden;
 }
 
 .view-toggle {
@@ -231,7 +242,9 @@ export default {
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
   padding: 20px;
   width: 100%;
-  max-width: 1200px;
+  height: 100%;
+  overflow-y: auto;
+  max-width: 1500px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -305,28 +318,18 @@ export default {
   margin: 5px 0;
 }
 
-.presensi-button,
-.presensi-history-button {
+.presensi-button {
   padding: 10px 20px;
   border: none;
   cursor: pointer;
   transition: background-color 0.3s;
   margin: 5px 0;
-}
-
-.presensi-button {
   background-color: #007BFF;
   color: white;
 }
 
 .presensi-button.hadir {
   background-color: #2ecc71;
-}
-
-.presensi-history-button {
-  background-color: #e0e0e0;
-  color: #555;
-  margin-left: 10px;
 }
 
 .modal-overlay {
@@ -371,5 +374,15 @@ export default {
 
 .table th {
   cursor: pointer;
+}
+
+.table tbody tr:nth-child(even),
+.detail-table tr:nth-child(even) {
+  background-color: #f2f2f2;
+}
+
+.table tbody tr:nth-child(odd),
+.detail-table tr:nth-child(odd) {
+  background-color: #ffffff;
 }
 </style>

@@ -1,4 +1,5 @@
 <template>
+  <h1 class="title">Bimbingan</h1>
   <div class="main-wrapper">
     <div class="toggle-view-wrapper">
       <div class="view-toggle" @click="toggleView">
@@ -8,66 +9,77 @@
     </div>
     <div class="container">
       <div class="container-content">
-        <h1 class="title">Bimbingan Saya</h1>
-        <div class="buttons-container">
-          <button v-if="!tableView" class="filter-button" :class="{'active': selectedBimbingan === 'all'}" @click="selectedBimbingan = 'all'">Semua</button>
-          <button v-if="!tableView" class="filter-button" :class="{'active': selectedBimbingan === 'krs'}" @click="selectedBimbingan = 'krs'">KRS</button>
-          <button v-if="!tableView" class="filter-button" :class="{'active': selectedBimbingan === 'kerjaPraktik'}" @click="selectedBimbingan = 'kerjaPraktik'">Kerja Praktik</button>
-          <button v-if="!tableView" class="filter-button" :class="{'active': selectedBimbingan === 'skripsi'}" @click="selectedBimbingan = 'skripsi'">Skripsi</button>
+        <div v-if="!tableView" class="buttons-container">
+          <button class="filter-button" :class="{'active': filter === 'all'}" @click="filter = 'all'">Semua</button>
+          <button class="filter-button" :class="{'active': filter === 'krs'}" @click="filter = 'krs'">KRS</button>
+          <button class="filter-button" :class="{'active': filter === 'kp'}" @click="filter = 'kp'">Kerja Praktik</button>
+          <button class="filter-button" :class="{'active': filter === 'skripsi'}" @click="filter = 'skripsi'">Skripsi</button>
         </div>
-        <div v-if="!tableView" class="cards-container">
-          <!-- Card View -->
-          <div v-for="bimbingan in filteredBimbinganData" :key="bimbingan.id" class="card" @click="openModal(bimbingan)">
+        <div class="cards-container" v-if="!tableView">
+          <div v-for="(item, index) in filteredBimbingan" :key="`bimbingan-${index}`" class="card">
             <div class="card-header">
-              <h3>{{ bimbingan.jenis }}</h3>
-              <span>{{ bimbingan.semester || bimbingan.judul }}</span>
+              <h3>{{ item.topik }}</h3>
+              <div class="divider"></div>
             </div>
             <div class="card-body">
-              <p>{{ bimbingan.topik }}</p>
-              <p>{{ bimbingan.status }}</p>
+              <p>{{ item.namaDosen }}</p>
+              <p>{{ item.judul }}</p>
+              <p>{{ item.status }}</p>
+              <button @click="lihatSlotWaktu(item)" class="lihat-slot-button">Lihat Slot Waktu</button>
             </div>
           </div>
         </div>
         <div v-else class="table-container">
-          <!-- Table View -->
           <table class="table">
             <thead>
               <tr>
-                <th @click="sortTable('jenis')">Jenis</th>
-                <th @click="sortTable('semester')">Semester</th>
-                <th @click="sortTable('judul')">Judul</th>
-                <th @click="sortTable('dosen')">Dosen</th>
-                <th @click="sortTable('topik')">Topik</th>
-                <th @click="sortTable('status')">Status</th>
+                <th>Topik</th>
+                <th>Dosen Pembimbing</th>
+                <th>Judul</th>
+                <th>Status</th>
+                <th>Aksi</th>
               </tr>
             </thead>
             <tbody>
-              <tr v-for="bimbingan in sortedBimbinganTable" :key="bimbingan.id" @click="openModal(bimbingan)">
-                <td>{{ bimbingan.jenis }}</td>
-                <td>{{ bimbingan.semester }}</td>
-                <td>{{ bimbingan.judul }}</td>
-                <td>{{ bimbingan.dosen }}</td>
-                <td>{{ bimbingan.topik }}</td>
-                <td>{{ bimbingan.status }}</td>
+              <tr v-for="(item, index) in filteredBimbingan" :key="`table-${index}`">
+                <td>{{ item.topik }}</td>
+                <td>{{ item.namaDosen }}</td>
+                <td>{{ item.judul }}</td>
+                <td>{{ item.status }}</td>
+                <td>
+                  <button @click="lihatSlotWaktu(item)" class="lihat-slot-button">Lihat Slot Waktu</button>
+                </td>
               </tr>
             </tbody>
           </table>
         </div>
       </div>
     </div>
+
+    <!-- Modal Slot Waktu -->
     <div v-if="showModal" class="modal-overlay" @click="closeModal">
       <div class="modal-content" @click.stop>
-        <h3>Detail Bimbingan</h3>
-        <p>Jenis: {{ selectedBimbingan.jenis }}</p>
-        <p v-if="selectedBimbingan.semester">Semester: {{ selectedBimbingan.semester }}</p>
-        <p v-else>Judul: {{ selectedBimbingan.judul }}</p>
-        <p>Dosen: {{ selectedBimbingan.dosen }}</p>
-        <p>Topik: {{ selectedBimbingan.topik }}</p>
-        <p>Status: {{ selectedBimbingan.status }}</p>
-        <ul v-if="selectedBimbingan.slots.length > 0">
-          <li v-for="slot in selectedBimbingan.slots" :key="slot.id">{{ slot.waktu }}</li>
-        </ul>
-        <button @click="closeModal">Close</button>
+        <h3 class="modal-title">Slot Waktu Bimbingan</h3>
+        <table class="slot-table">
+          <thead>
+            <tr>
+              <th>Pilih</th>
+              <th>Hari</th>
+              <th>Tanggal</th>
+              <th>Waktu</th>
+              <th>Ruang</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="(slot, index) in selectedSlots" :key="`slot-${index}`" :class="{ 'gray-row': index % 2 === 1 }">
+              <td><button @click="pilihSlot(slot)" class="pilih-slot-button">Pilih Slot</button></td>
+              <td>{{ slot.hari }}</td>
+              <td>{{ slot.tanggal }}</td>
+              <td>{{ slot.waktu }}</td>
+              <td>{{ slot.ruang }}</td>
+            </tr>
+          </tbody>
+        </table>
       </div>
     </div>
   </div>
@@ -77,59 +89,28 @@
 export default {
   data() {
     return {
-      selectedBimbingan: 'all',
+      filter: 'all',
       tableView: false,
-      sortBy: null,
-      sortOrder: 'asc',
-      bimbinganData: {
-        krs: [
-          { id: 1, jenis: 'KRS', semester: 'Semester 1', dosen: 'Dr. Siti', topik: 'Pengisian KRS', status: 'Disetujui', slots: [
-            { id: 101, waktu: '2024-08-01 10:00' },
-            { id: 102, waktu: '2024-08-01 11:00' }
-          ]},
-          { id: 2, jenis: 'KRS', semester: 'Semester 2', dosen: 'Dr. Siti', topik: 'Perbaikan KRS', status: 'Proses', slots: [
-            { id: 103, waktu: '2024-08-02 10:00' },
-            { id: 104, waktu: '2024-08-02 11:00' }
-          ]}
-        ],
-        kerjaPraktik: [
-          { id: 3, jenis: 'Kerja Praktik', judul: 'Pengembangan Web', dosen: 'Prof. Budi', topik: 'Proposal KP', status: 'Proses', slots: [
-            { id: 105, waktu: '2024-08-03 10:00' },
-            { id: 106, waktu: '2024-08-03 11:00' }
-          ]},
-          { id: 4, jenis: 'Kerja Praktik', judul: 'Desain UI/UX', dosen: 'Prof. Budi', topik: 'Laporan KP', status: 'Revisi', slots: [
-            { id: 107, waktu: '2024-08-04 10:00' },
-            { id: 108, waktu: '2024-08-04 11:00' }
-          ]}
-        ],
-        skripsi: [
-          { id: 5, jenis: 'Skripsi', judul: 'Analisis Data', dosen: 'Dr. Ani', topik: 'Bab 1', status: 'Disetujui', slots: [
-            { id: 109, waktu: '2024-08-05 10:00' },
-            { id: 110, waktu: '2024-08-05 11:00' }
-          ]},
-          { id: 6, jenis: 'Skripsi', judul: 'Kecerdasan Buatan', dosen: 'Dr. Ani', topik: 'Bab 2', status: 'Proses', slots: [
-            { id: 111, waktu: '2024-08-06 10:00' },
-            { id: 112, waktu: '2024-08-06 11:00' }
-          ]}
-        ]
-      },
       showModal: false,
-      selectedBimbinganDetail: {}
+      selectedSlots: [],
+      bimbinganList: [
+        { topik: 'KRS', namaDosen: 'Dr. John Doe', status: 'Belum Disetujui', judul: 'Semester 1', type: 'krs' },
+        { topik: 'Kerja Praktik', namaDosen: 'Dr. Jane Smith', status: 'Disetujui', judul: 'Analisis Sistem Informasi', type: 'kp' },
+        { topik: 'Skripsi', namaDosen: 'Prof. Alice Brown', status: 'Belum Disetujui', judul: 'Pengembangan Aplikasi Mobile', type: 'skripsi' },
+        { topik: 'KRS', namaDosen: 'Dr. Chris Black', status: 'Belum Disetujui', judul: 'Semester 2', type: 'krs' },
+        { topik: 'Kerja Praktik', namaDosen: 'Dr. Sarah White', status: 'Disetujui', judul: 'Pengembangan Sistem E-Commerce', type: 'kp' },
+        { topik: 'Skripsi', namaDosen: 'Prof. Michael Green', status: 'Belum Disetujui', judul: 'Analisis Data Big Data', type: 'skripsi' },
+        { topik: 'KRS', namaDosen: 'Dr. Anna Red', status: 'Belum Disetujui', judul: 'Semester 3', type: 'krs' },
+        { topik: 'Kerja Praktik', namaDosen: 'Dr. Paul Yellow', status: 'Disetujui', judul: 'Desain User Interface', type: 'kp' },
+        { topik: 'Skripsi', namaDosen: 'Prof. Robert Blue', status: 'Belum Disetujui', judul: 'Keamanan Jaringan', type: 'skripsi' },
+        // Tambah data bimbingan lainnya
+      ],
     };
   },
   computed: {
-    filteredBimbinganData() {
-      return this.selectedBimbingan === 'all' ? Object.values(this.bimbinganData).flat() : this.bimbinganData[this.selectedBimbingan];
-    },
-    sortedBimbinganTable() {
-      return this.filteredBimbinganData.sort((a, b) => {
-        if (!this.sortBy) return 0;
-        if (a[this.sortBy] === b[this.sortBy]) return 0;
-        if (this.sortOrder === 'asc') {
-          return a[this.sortBy] > b[this.sortBy] ? 1 : -1;
-        } else {
-          return a[this.sortBy] < b[this.sortBy] ? 1 : -1;
-        }
+    filteredBimbingan() {
+      return this.bimbinganList.filter(bimbingan => {
+        return this.filter === 'all' || bimbingan.type === this.filter;
       });
     }
   },
@@ -137,32 +118,37 @@ export default {
     toggleView() {
       this.tableView = !this.tableView;
       if (this.tableView) {
-        this.selectedBimbingan = 'all'; // Reset filter when switching to table view
+        this.filter = 'all'; // Reset filter when switching to table view
       }
     },
-    sortTable(field) {
-      if (this.sortBy === field) {
-        this.sortOrder = this.sortOrder === 'asc' ? 'desc' : 'asc';
-      } else {
-        this.sortBy = field;
-        this.sortOrder = 'asc';
-      }
-    },
-    openModal(bimbingan) {
-      this.selectedBimbinganDetail = bimbingan;
+    lihatSlotWaktu(item) {
+      this.selectedSlots = [
+        { hari: 'Senin', tanggal: '01-08-2024', waktu: '08:00 - 09:00', ruang: 'A101' },
+        { hari: 'Selasa', tanggal: '02-08-2024', waktu: '09:00 - 10:00', ruang: 'B202' },
+        { hari: 'Rabu', tanggal: '03-08-2024', waktu: '10:00 - 11:00', ruang: 'C303' },
+        // Tambah slot waktu lainnya
+      ];
       this.showModal = true;
+    },
+    pilihSlot(slot) {
+      console.log(`Slot ${slot.hari}, ${slot.tanggal}, ${slot.waktu}, ${slot.ruang} dipilih`);
+      this.closeModal();
     },
     closeModal() {
       this.showModal = false;
     }
-  },
-  mounted() {
-    this.selectedBimbingan = 'all'; // Set default filter to 'all' on mount
   }
 };
 </script>
 
 <style scoped>
+.enrollment-info {
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+  font-size: 0.85em;
+  color: #666;
+}
 .main-wrapper {
   display: flex;
   align-items: flex-start;
@@ -172,7 +158,7 @@ export default {
 
 .toggle-view-wrapper {
   position: absolute;
-  right: 280px;
+  right: 120px;
   top: 25px;
 }
 
@@ -183,6 +169,8 @@ export default {
   flex-wrap: wrap;
   padding: 20px;
   width: 100%;
+  height: 80vh;
+  overflow: hidden;
 }
 
 .view-toggle {
@@ -190,7 +178,7 @@ export default {
   border: none;
   cursor: pointer;
   width: 40px;
-  height: 40px;
+  height: 40px
 }
 
 .view-toggle img {
@@ -205,7 +193,9 @@ export default {
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
   padding: 20px;
   width: 100%;
-  max-width: 1200px;
+  height: 100%;
+  overflow-y: auto;
+  max-width: 1500px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -256,6 +246,7 @@ export default {
   padding: 10px;
   width: 300px;
   cursor: pointer;
+  position: relative; /* Necessary for absolute positioning of children */
 }
 
 .card-header {
@@ -279,31 +270,18 @@ export default {
   margin: 5px 0;
 }
 
-.ambil-button,
-.batal-button {
+.lihat-slot-button {
   padding: 10px 20px;
   border: none;
   cursor: pointer;
   transition: background-color 0.3s;
   margin: 5px 0;
-}
-
-.ambil-button {
   background-color: #3498db;
   color: white;
 }
 
-.batal-button {
-  background-color: #e74c3c;
-  color: white;
-}
-
-.ambil-button:hover {
+.lihat-slot-button:hover {
   background-color: #2980b9;
-}
-
-.batal-button:hover {
-  background-color: #c0392b;
 }
 
 .modal-overlay {
@@ -323,11 +301,43 @@ export default {
   padding: 20px;
   border-radius: 8px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  width: 400px;
+  width: 600px;
 }
 
-.modal-content h3 {
-  margin-top: 0;
+.modal-title {
+  text-align: center;
+}
+
+.slot-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+}
+
+.slot-table th, .slot-table td {
+  padding: 10px;
+  text-align: left;
+  border-bottom: 1px solid #ccc;
+}
+
+.slot-table tbody tr:nth-child(even) {
+  background-color: #f2f2f2;
+}
+
+.slot-table tbody tr:nth-child(odd) {
+  background-color: #ffffff;
+}
+
+.pilih-slot-button {
+  background-color: #3498db;
+  color: white;
+  border: none;
+  padding: 8px 12px;
+  cursor: pointer;
+}
+
+.pilih-slot-button:hover {
+  background-color: #2980b9;
 }
 
 .table-container {
@@ -348,5 +358,30 @@ export default {
 
 .table th {
   cursor: pointer;
+}
+
+.table tbody tr:nth-child(even) {
+  background-color: #f2f2f2;
+}
+
+.table tbody tr:nth-child(odd) {
+  background-color: #ffffff;
+}
+
+.detail-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.detail-table tr:nth-child(even) {
+  background-color: #f2f2f2;
+}
+
+.detail-table tr:nth-child(odd) {
+  background-color: #ffffff;
+}
+
+.detail-table td {
+  padding: 8px;
 }
 </style>
