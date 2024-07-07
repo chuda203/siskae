@@ -1,7 +1,7 @@
 <template>
   <div id="app">
-    <Header v-if="auth.isAuthenticated" @toggle-sidebar="toggleSidebar" />
-    <Sidebar v-if="auth.isAuthenticated" :showSidebar="showSidebar" @show-content="showContent" />
+    <Header :menuItems="menuItems" v-if="auth.isAuthenticated" />
+    <Sidebar v-if="auth.isAuthenticated && isMobile" :showSidebar="showSidebar" @show-content="showContent" />
     <main :class="{ 'mobile-content': isMobile && !showSidebar }">
       <router-view />
     </main>
@@ -28,21 +28,20 @@ export default {
   data() {
     return {
       isMobile: false,
-      showSidebar: false // Initially hide sidebar on mobile
+      showSidebar: false, // Initially hide sidebar on mobile
+      menuItems: [] // Initialize menu items based on user roles
     };
   },
   mounted() {
     this.checkWindowSize();
     window.addEventListener('resize', this.checkWindowSize);
     this.$router.afterEach(this.checkRoute);
+    this.menuItems = this.getMenuItems(); // Fetch menu items on component mount
   },
   beforeDestroy() {
     window.removeEventListener('resize', this.checkWindowSize);
   },
   methods: {
-    toggleSidebar() {
-      this.showSidebar = !this.showSidebar;
-    },
     checkWindowSize() {
       this.isMobile = window.innerWidth <= 768; // Adjust breakpoint as needed
       if (!this.isMobile) {
@@ -58,6 +57,27 @@ export default {
     },
     showContent() {
       this.showSidebar = false;
+    },
+    getMenuItems() {
+      // Implement fetching menu items based on user role or any other criteria
+      return this.auth.role === 'dosen' ? [
+        { name: 'Beranda', path: '/', icon: 'home' },
+        { name: 'Bimbingan', path: '/bimbingan', icon: 'bullhorn' },
+        { name: 'Mata Kuliah', path: '/mata-kuliah', icon: 'book' },
+        { name: 'Publikasi', path: '/publikasi', icon: 'pencil-alt' },
+        { name: 'Riwayat', path: '/riwayat', icon: 'chart-line' },
+        { name: 'Saran', path: '/saran', icon: 'graduation-cap' },
+        { name: 'Ujian', path: '/ujian', icon: 'calendar' }
+      ] : [
+        { name: 'Beranda', path: '/', icon: 'home' },
+        { name: 'Bimbingan', path: '/bimbingan', icon: 'bullhorn' },
+        { name: 'Kelas', path: '/kelas', icon: 'calendar-check' },
+        { name: 'KRS', path: '/krs', icon: 'edit' },
+        { name: 'Publikasi', path: '/publikasi', icon: 'pencil-alt' },
+        { name: 'Saran', path: '/saran', icon: 'graduation-cap' },
+        { name: 'Transkrip', path: '/transkrip', icon: 'file-alt' },
+        { name: 'Ujian', path: '/ujian', icon: 'calendar' }
+      ];
     }
   }
 }
@@ -74,7 +94,7 @@ header {
 }
 main {
   flex-grow: 1;
-  padding: 80px;
+  padding-top: 60px; /* Menambahkan padding agar konten tidak tertutup header */
 }
 .mobile-content {
   padding: 0;

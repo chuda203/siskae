@@ -1,50 +1,125 @@
 <template>
-  <header class="header">
-    <button @click="toggleSidebar" class="hamburger">&#9776;</button>
+  <header :class="['header', { 'header-blur': isBlurred }]">
     <img :src="logo" alt="Campus Logo" class="logo">
-    <h1 class="campus-name">Nama Kampus</h1>
+    <!-- Navigasi untuk desktop -->
+    <nav v-if="!isMobile" class="nav-menu">
+      <ul class="menu-list">
+        <li v-for="item in menuItems" :key="item.name">
+          <router-link :to="item.path" class="menu-link">{{ item.name }}</router-link>
+        </li>
+      </ul>
+    </nav>
   </header>
 </template>
 
 <script>
 import logo from '../assets/logo.png';
+import { inject, ref, onMounted, onUnmounted } from 'vue';
 
 export default {
+  props: ['menuItems'],  // Menerima menuItems sebagai prop
   data() {
     return {
-      logo
+      logo,
+      isBlurred: false
     };
   },
-  methods: {
-    toggleSidebar() {
-      this.$emit('toggle-sidebar');
-    }
+  setup() {
+    const isMobile = inject('isMobile');  // Menerima state isMobile
+    const isBlurred = ref(false);
+
+    const handleScroll = () => {
+      isBlurred.value = window.scrollY > 0;
+    };
+
+    onMounted(() => {
+      window.addEventListener('scroll', handleScroll);
+    });
+
+    onUnmounted(() => {
+      window.removeEventListener('scroll', handleScroll);
+    });
+
+    return { isMobile, isBlurred };
   }
 }
 </script>
 
 <style scoped>
+.menu-link.router-link-exact-active,
+.menu-link.router-link-active {
+  color: #f39c12; /* Warna untuk menandai link aktif */
+  font-weight: bold; /* Membuat teks lebih tebal */
+ /* text-shadow: 0 0 5px rgba(255,255,255,0.5); /* Menambahkan shadow untuk efek yang lebih menonjol */
+}
+
 .header {
   display: flex;
   align-items: center;
-  padding: 10px;
-  background-color: #333;
+  justify-content: space-between;
+  padding: 10px 20px;
+  background-color: #2c3e50;
   color: white;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  position: fixed;
+  width: 100%;
+  top: 0;
+  z-index: 1000;
+  transition: backdrop-filter 0.3s ease, background-color 0.3s ease;
 }
-.hamburger {
-  font-size: 24px;
-  cursor: pointer;
-  background: none;
-  border: none;
-  color: white;
-  margin-right: 10px;
+
+.header-blur {
+  backdrop-filter: blur(10px);
+  background-color: rgba(44, 62, 80, 0.8);
 }
+
 .logo {
   height: 40px;
-  margin-right: 10px;
+  width: auto;
 }
-.campus-name {
-  flex-grow: 1;
-  text-align: center;
+
+.nav-menu {
+  flex-grow: 1; /* Membuat nav-menu mengambil sisa ruang */
+  display: flex;
+  justify-content: flex-end; /* Menempatkan menu-list di ujung kanan */
+}
+
+.menu-list {
+  display: flex;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  justify-content: flex-end; /* Menempatkan item menu di sebelah kanan */
+  flex-grow: 1; /* Membuat menu-list mengambil sisa ruang */
+}
+
+.menu-list li {
+  margin: 0 10px;
+  position: relative;
+}
+
+.menu-list li a {
+  color: white;
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.3s ease;
+}
+
+.menu-list li a:hover,
+.menu-list li a:focus {
+  color: #f39c12;
+  text-shadow: 0 0 5px rgba(255,255,255,0.5);
+}
+
+/* Styling tambahan untuk responsivitas */
+@media (max-width: 768px) {
+  .header {
+    justify-content: space-between;
+    padding: 10px;
+  }
+
+  .nav-menu {
+    display: none;
+  }
 }
 </style>

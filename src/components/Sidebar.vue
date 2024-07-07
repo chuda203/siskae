@@ -39,8 +39,7 @@ export default {
   },
   data() {
     return {
-      isCollapsed: true, // Initially collapsed
-      isMobile: false // Initially not mobile
+      isMobile: true  // Pastikan sidebar hanya aktif di mobile
     };
   },
   computed: {
