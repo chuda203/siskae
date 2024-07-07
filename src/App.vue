@@ -11,56 +11,28 @@
 
 <script>
 import Header from './components/Header.vue';
-import Sidebar from './components/Sidebar.vue';
 import FooterComponent from './components/Footer.vue';
-import { inject } from 'vue';
+import { inject, ref, onMounted, watch } from 'vue';
 
 export default {
   components: {
     Header,
-    Sidebar,
     FooterComponent
   },
   setup() {
     const auth = inject('auth'); // Inject auth state
-    return { auth };
-  },
-  data() {
-    return {
-      isMobile: false,
-      showSidebar: false, // Initially hide sidebar on mobile
-      menuItems: [] // Initialize menu items based on user roles
+    const isMobile = ref(false);
+    const showSidebar = ref(false); // Initially hide sidebar on mobile
+    const menuItems = ref([]); // Initialize menu items based on user roles
+
+    const checkWindowSize = () => {
+      isMobile.value = window.innerWidth <= 768; // Adjust breakpoint as needed
+      showSidebar.value = !isMobile.value; // Always show sidebar on desktop, hide on mobile
     };
-  },
-  mounted() {
-    this.checkWindowSize();
-    window.addEventListener('resize', this.checkWindowSize);
-    this.$router.afterEach(this.checkRoute);
-    this.menuItems = this.getMenuItems(); // Fetch menu items on component mount
-  },
-  beforeDestroy() {
-    window.removeEventListener('resize', this.checkWindowSize);
-  },
-  methods: {
-    checkWindowSize() {
-      this.isMobile = window.innerWidth <= 768; // Adjust breakpoint as needed
-      if (!this.isMobile) {
-        this.showSidebar = true; // Always show sidebar on desktop
-      } else {
-        this.showSidebar = false; // Initially hide sidebar on mobile
-      }
-    },
-    checkRoute(to, from) {
-      if (this.isMobile) {
-        this.showSidebar = false; // Hide sidebar on mobile when navigating
-      }
-    },
-    showContent() {
-      this.showSidebar = false;
-    },
-    getMenuItems() {
-      // Implement fetching menu items based on user role or any other criteria
-      return this.auth.role === 'dosen' ? [
+
+    const getMenuItems = () => {
+      console.log('Current role:', auth.role);
+      return auth.role === 'dosen' ? [
         { name: 'Beranda', path: '/', icon: 'home' },
         { name: 'Bimbingan', path: '/bimbingan', icon: 'bullhorn' },
         { name: 'Mata Kuliah', path: '/mata-kuliah', icon: 'book' },
@@ -78,7 +50,25 @@ export default {
         { name: 'Transkrip', path: '/transkrip', icon: 'file-alt' },
         { name: 'Ujian', path: '/ujian', icon: 'calendar' }
       ];
-    }
+    };
+
+    onMounted(() => {
+      window.addEventListener('resize', checkWindowSize);
+      checkWindowSize(); // Set initial window size status
+      console.log('Role on mounted:', auth.role); // Check if the role is logged correctly
+      menuItems.value = getMenuItems(); // Fetch menu items on component mount
+    });
+
+    watch(() => auth.role, (newRole) => {
+      console.log('Role changed:', newRole);
+      menuItems.value = getMenuItems(); // Update menu items when role changes
+    });
+
+    window.onunload = () => {
+      window.removeEventListener('resize', checkWindowSize);
+    };
+
+    return { auth, isMobile, showSidebar, menuItems };
   }
 }
 </script>

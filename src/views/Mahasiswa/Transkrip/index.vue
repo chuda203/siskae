@@ -412,8 +412,8 @@ export default {
 
 .view-toggle img {
   width: 100%;
-  height: 100%;
-  object-fit: cover;
+  height: auto; /* Adjust height automatically */
+  display: block; /* Ensures the image is treated as a block-level element */
 }
 
 .ipk-ips-wrapper {
@@ -433,7 +433,7 @@ export default {
 }
 
 .print-card {
-  background-color: #f9f9f9;
+  background-color: #ffffff;
   border: 1px solid #ccc;
   border-radius: 8px;
   padding: 20px; /* Increased padding */
