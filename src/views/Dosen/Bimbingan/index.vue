@@ -1,264 +1,482 @@
 <template>
-  <div class="container">
-    <div class="bimbingan-card">
-      <h2>Mahasiswa Bimbingan</h2>
-      <label for="bimbinganType">Pilih Jenis Bimbingan:</label>
-      <select id="bimbinganType" v-model="selectedBimbingan" @change="loadBimbinganData">
-        <option value="krs">Bimbingan KRS</option>
-        <option value="kerjaPraktik">Bimbingan Kerja Praktik</option>
-        <option value="skripsi">Bimbingan Skripsi</option>
-      </select>
-
-      <div class="table-container">
-        <table v-if="bimbinganData.length" class="bimbingan-table">
-          <thead>
-            <tr>
-              <th>Nama</th>
-              <th>NIM</th>
-              <th>Jurusan</th>
-              <th>Status</th>
-              <th>Riwayat</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="mahasiswa in bimbinganData" :key="mahasiswa.nim">
-              <td>{{ mahasiswa.nama }}</td>
-              <td>{{ mahasiswa.nim }}</td>
-              <td>{{ mahasiswa.jurusan }}</td>
-              <td>
-                <button
-                  :class="{'acc-button': true, 'accepted': mahasiswa.status === 'Diterima'}"
-                  @click="toggleStatus(mahasiswa)"
-                  :disabled="mahasiswa.status === 'Diterima'"
-                >
-                  {{ mahasiswa.status === 'Diterima' ? 'Diterima' : 'ACC' }}
-                </button>
-              </td>
-              <td><button @click="showRiwayat(mahasiswa.nim)">Riwayat</button></td>
-            </tr>
-          </tbody>
-        </table>
-        <p v-else class="no-data">Tidak ada data untuk jenis bimbingan yang dipilih.</p>
+  <h1 class="title">Bimbingan</h1>
+  <div class="main-wrapper">
+    <div class="toggle-view-wrapper">
+      <div class="view-toggle" @click="toggleView">
+        <img v-if="tableView" src="../../../assets/ic_card.png" alt="Card View" />
+        <img v-else src="../../../assets/ic_table.png" alt="Table View" />
       </div>
-
-      <div v-if="showRiwayatModal" class="modal">
-        <div class="modal-content">
-          <span class="close" @click="closeRiwayat">&times;</span>
-          <h3>Riwayat Bimbingan</h3>
-          <table class="riwayat-table">
+    </div>
+    <div class="container">
+      <div class="container-content">
+        <div v-if="!tableView" class="buttons-container">
+          <button class="filter-button" :class="{'active': filter === 'all'}" @click="filter = 'all'">Semua</button>
+          <button class="filter-button" :class="{'active': filter === 'krs'}" @click="filter = 'krs'">KRS</button>
+          <button class="filter-button" :class="{'active': filter === 'kp'}" @click="filter = 'kp'">Kerja Praktik</button>
+          <button class="filter-button" :class="{'active': filter === 'skripsi'}" @click="filter = 'skripsi'">Skripsi</button>
+        </div>
+        <div class="cards-container" v-if="!tableView">
+          <div v-for="(item, index) in filteredBimbingan" :key="`bimbingan-${index}`" class="card">
+            <div class="card-header">
+              <h3>{{ item.topik }}</h3>
+              <div class="divider"></div>
+            </div>
+            <div class="card-body">
+              <p>{{ item.namaDosen }}</p>
+              <p>{{ item.judul }}</p>
+              <p>{{ item.status }}</p>
+              <button @click="ajukanJadwal(item)" class="ajukan-jadwal-button">Ajukan Jadwal</button>
+              <button @click="ubahStatus(item)" class="ubah-status-button">Ubah Status</button>
+            </div>
+          </div>
+        </div>
+        <div v-else class="table-container">
+          <table class="table">
             <thead>
               <tr>
-                <th>Tanggal</th>
-                <th>Keterangan</th>
+                <th>Topik</th>
+                <th>Dosen Pembimbing</th>
+                <th>Judul</th>
+                <th>Status</th>
+                <th>Aksi</th>
               </tr>
             </thead>
             <tbody>
-              <tr v-for="riwayat in riwayatData" :key="riwayat.tanggal">
-                <td>{{ riwayat.tanggal }}</td>
-                <td>{{ riwayat.keterangan }}</td>
+              <tr v-for="(item, index) in filteredBimbingan" :key="`table-${index}`">
+                <td>{{ item.topik }}</td>
+                <td>{{ item.namaDosen }}</td>
+                <td>{{ item.judul }}</td>
+                <td>{{ item.status }}</td>
+                <td>
+                  <button @click="ajukanJadwal(item)" class="ajukan-jadwal-button">Ajukan Jadwal</button>
+                  <button @click="ubahStatus(item)" class="ubah-status-button">Ubah Status</button>
+                </td>
               </tr>
             </tbody>
           </table>
         </div>
       </div>
     </div>
+
+    <!-- Modal Ajukan Jadwal -->
+    <div v-if="showModalJadwal" class="modal-overlay" @click="closeModal">
+      <div class="modal-content" @click.stop>
+        <h3 class="modal-title">Ajukan Jadwal Bimbingan</h3>
+        <table class="jadwal-table">
+          <thead>
+            <tr>
+              <th>Tanggal</th>
+              <th>Waktu</th>
+              <th>Ruang</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="(jadwal, index) in selectedStudent.jadwal" :key="`jadwal-${index}`">
+              <td>{{ jadwal.tanggal }}</td>
+              <td>{{ jadwal.waktu }}</td>
+              <td>{{ jadwal.ruang }}</td>
+            </tr>
+          </tbody>
+        </table>
+        <form @submit.prevent="submitJadwal">
+          <div class="form-group">
+            <label for="tanggal">Tanggal</label>
+            <input type="date" id="tanggal" v-model="formJadwal.tanggal" required />
+          </div>
+          <div class="form-group">
+            <label for="waktu">Waktu</label>
+            <input type="time" id="waktu" v-model="formJadwal.waktu" required />
+          </div>
+          <div class="form-group">
+            <label for="ruang">Ruang</label>
+            <input type="text" id="ruang" v-model="formJadwal.ruang" required />
+          </div>
+          <button type="submit" class="submit-button">Ajukan</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Modal Ubah Status -->
+    <div v-if="showModalStatus" class="modal-overlay" @click="closeModal">
+      <div class="modal-content" @click.stop>
+        <h3 class="modal-title">Ubah Status Bimbingan</h3>
+        <div class="status-buttons">
+          <button @click="setStatus('ACC')" :class="{'active': formStatus.status === 'ACC'}">ACC</button>
+          <button @click="setStatus('Proses Bimbingan')" :class="{'active': formStatus.status === 'Proses Bimbingan'}">Proses Bimbingan</button>
+          <button @click="setStatus('Belum Bimbingan')" :class="{'active': formStatus.status === 'Belum Bimbingan'}">Belum Bimbingan</button>
+        </div>
+        <button @click="submitStatus" class="submit-button">Ubah Status</button>
+      </div>
+    </div>
   </div>
 </template>
-
 <script>
 export default {
-  name: 'Bimbingan',
   data() {
     return {
-      selectedBimbingan: 'krs',
-      bimbinganData: [],
-      showRiwayatModal: false,
-      riwayatData: []
+      filter: 'all',
+      tableView: false,
+      showModalJadwal: false,
+      showModalStatus: false,
+      formJadwal: {
+        tanggal: '',
+        waktu: '',
+        ruang: ''
+      },
+      formStatus: {
+        status: ''
+      },
+      selectedStudent: null,
+      bimbinganList: [
+        { topik: 'KRS', namaDosen: 'Dr. John Doe', status: 'Belum Bimbingan', judul: 'Semester 1', type: 'krs', jadwal: [] },
+        { topik: 'Kerja Praktik', namaDosen: 'Dr. Jane Smith', status: 'ACC', judul: 'Analisis Sistem Informasi', type: 'kp', jadwal: [] },
+        { topik: 'Skripsi', namaDosen: 'Prof. Alice Brown', status: 'Proses Bimbingan', judul: 'Pengembangan Aplikasi Mobile', type: 'skripsi', jadwal: [] },
+        { topik: 'KRS', namaDosen: 'Dr. Chris Black', status: 'Belum Bimbingan', judul: 'Semester 2', type: 'krs', jadwal: [] },
+        { topik: 'Kerja Praktik', namaDosen: 'Dr. Sarah White', status: 'ACC', judul: 'Pengembangan Sistem E-Commerce', type: 'kp', jadwal: [] },
+        { topik: 'Skripsi', namaDosen: 'Prof. Michael Green', status: 'Proses Bimbingan', judul: 'Analisis Data Big Data', type: 'skripsi', jadwal: [] },
+        { topik: 'KRS', namaDosen: 'Dr. Anna Red', status: 'ACC', judul: 'Semester 3', type: 'krs', jadwal: [] },
+        { topik: 'Kerja Praktik', namaDosen: 'Dr. Paul Yellow', status: 'ACC', judul: 'Desain User Interface', type: 'kp', jadwal: [] },
+        { topik: 'Skripsi', namaDosen: 'Prof. Robert Blue', status: 'Belum Bimbingan', judul: 'Keamanan Jaringan', type: 'skripsi', jadwal: [] },
+        // Tambah data bimbingan lainnya
+      ],
     };
   },
-  mounted() {
-    this.loadBimbinganData();
+  computed: {
+    filteredBimbingan() {
+      return this.bimbinganList.filter(bimbingan => {
+        return this.filter === 'all' || bimbingan.type === this.filter;
+      });
+    }
   },
   methods: {
-    loadBimbinganData() {
-      const data = {
-        krs: [
-          { nama: 'Budi', nim: '123456', jurusan: 'Informatika', status: 'ACC' },
-          { nama: 'Ani', nim: '789012', jurusan: 'Informatika', status: 'ACC' }
-        ],
-        kerjaPraktik: [
-          { nama: 'Siti', nim: '345678', jurusan: 'Sistem Informasi', status: 'ACC' },
-          { nama: 'Andi', nim: '901234', jurusan: 'Sistem Informasi', status: 'ACC' }
-        ],
-        skripsi: [
-          { nama: 'Joko', nim: '567890', jurusan: 'Teknik Komputer', status: 'ACC' },
-          { nama: 'Dewi', nim: '123890', jurusan: 'Teknik Komputer', status: 'ACC' }
-        ]
-      };
-
-      this.bimbinganData = data[this.selectedBimbingan];
-    },
-    toggleStatus(mahasiswa) {
-      if (mahasiswa.status === 'ACC') {
-        mahasiswa.status = 'Diterima';
+    toggleView() {
+      this.tableView = !this.tableView;
+      if (this.tableView) {
+        this.filter = 'all'; // Reset filter when switching to table view
       }
     },
-    showRiwayat(nim) {
-      const riwayatData = {
-        '123456': [
-          { tanggal: '2023-01-01', keterangan: 'Bimbingan 1' },
-          { tanggal: '2023-01-15', keterangan: 'Bimbingan 2' }
-        ],
-        '789012': [
-          { tanggal: '2023-02-01', keterangan: 'Bimbingan 1' },
-          { tanggal: '2023-02-15', keterangan: 'Bimbingan 2' }
-        ]
-      };
-
-      this.riwayatData = riwayatData[nim] || [];
-      this.showRiwayatModal = true;
+    ubahStatus(item) {
+      this.selectedStudent = item;
+      this.formStatus.status = item.status;
+      this.showModalStatus = true;
     },
-    closeRiwayat() {
-      this.showRiwayatModal = false;
-      this.riwayatData = [];
+    setStatus(status) {
+      this.formStatus.status = status;
+    },
+    submitStatus() {
+      this.selectedStudent.status = this.formStatus.status;
+      this.closeModal();
+    },
+    ajukanJadwal(item) {
+      this.selectedStudent = item;
+      this.showModalJadwal = true;
+    },
+    submitJadwal() {
+      this.selectedStudent.jadwal.push({
+        tanggal: this.formJadwal.tanggal,
+        waktu: this.formJadwal.waktu,
+        ruang: this.formJadwal.ruang
+      });
+      console.log(`Jadwal diajukan untuk ${this.selectedStudent.nama}: Tanggal: ${this.formJadwal.tanggal}, Waktu: ${this.formJadwal.waktu}, Ruang: ${this.formJadwal.ruang}`);
+      this.formJadwal = {
+        tanggal: '',
+        waktu: '',
+        ruang: ''
+      };
+    },
+    closeModal() {
+      this.showModalJadwal = false;
+      this.showModalStatus = false;
+      this.formJadwal = {
+        tanggal: '',
+        waktu: '',
+        ruang: ''
+      };
+      this.formStatus = {
+        status: ''
+      };
     }
   }
 };
 </script>
-
-<style>
-.container {
+<style scoped>
+.main-wrapper {
   display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100%;
-  padding: 20px;
+  align-items: flex-start;
+  width: 100%;
+  position: relative;
 }
 
-.bimbingan-card {
+.toggle-view-wrapper {
+  position: absolute;
+  right: 120px;
+  top: 25px;
+}
+
+.container {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  flex-wrap: wrap;
+  padding: 20px;
+  width: 100%;
+  height: 80vh;
+  overflow: hidden;
+}
+
+.view-toggle {
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+  width: 40px;
+  height: 40px
+}
+
+.view-toggle img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.container-content {
   background-color: white;
   border-radius: 10px;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
   padding: 20px;
   width: 100%;
-  min-width: 800px;
+  height: 100%;
+  overflow-y: auto;
+  max-width: 1500px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
-.card h2 {
-  margin-bottom: 15px;
+.title {
   text-align: center;
-}
-
-label {
-  display: block;
-  margin-bottom: 10px;
-}
-
-select {
-  width: 100%;
-  padding: 10px;
   margin-bottom: 20px;
-  border-radius: 5px;
-  border: 1px solid #ccc;
 }
 
-.table-container {
-  overflow-x: auto;
-}
-
-.bimbingan-table {
+.buttons-container {
+  display: flex;
+  justify-content: center;
   width: 100%;
-  border-collapse: collapse;
+  margin-bottom: 20px;
 }
 
-.bimbingan-table th,
-.bimbingan-table td {
-  border: 1px solid #ddd;
-  padding: 8px;
-}
-
-.bimbingan-table th {
-  background-color: #f2f2f2;
-}
-
-.bimbingan-table td {
-  text-align: center;
-}
-
-.no-data {
-  text-align: center;
-  margin-top: 10px;
-}
-
-.acc-button {
-  padding: 5px 10px;
+.filter-button {
   border: none;
-  border-radius: 5px;
-  background-color: #4CAF50;
+  background-color: #cccccc;
   color: white;
+  padding: 10px 20px;
+  border-radius: 20px;
   cursor: pointer;
+  margin-right: 10px;
 }
 
-.acc-button.accepted {
+.filter-button:last-child {
+  margin-right: 0;
+}
+
+.filter-button.active {
+  background-color: #007BFF;
+}
+
+.cards-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  justify-content: center;
+  width: 100%;
+}
+
+.card {
+  background-color: #f9f9f9;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  padding: 10px;
+  width: 300px;
+  cursor: pointer;
+  position: relative; /* Necessary for absolute positioning of children */
+}
+
+.card-header {
+  position: relative;
+}
+
+.card-header h3 {
+  margin: 0;
+}
+
+.divider {
+  height: 1px;
+  background-color: #ccc;
+  margin: 10px 0;
+  width: calc(100% - 20px);
+  margin-left: 10px;
+  margin-right: 10px;
+}
+
+.card-body p {
+  margin: 5px 0;
+}
+
+.ajukan-jadwal-button,
+.ubah-status-button {
+  padding: 10px 20px;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  margin: 5px 5px 5px 0;
+  background-color: #3498db;
+  color: white;
+}
+
+.ajukan-jadwal-button:hover,
+.ubah-status-button:hover {
+  background-color: #2980b9;
+}
+
+.status-buttons {
+  display: flex;
+  justify-content: space-around;
+  margin-bottom: 20px;
+}
+
+.status-buttons button {
+  padding: 10px 20px;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.3s;
   background-color: #ddd;
-  color: #666;
-  cursor: default;
+  color: white;
+  margin: 0 5px; /* Adjust the margin to control the spacing */
 }
 
-.modal {
+.status-buttons button.active {
+  background-color: #007BFF;
+}
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
   display: flex;
   justify-content: center;
   align-items: center;
-  position: fixed;
-  z-index: 1;
-  left: 0;
-  top: 0;
-  width: 100%;
-  height: 100%;
-  overflow: auto;
-  background-color: rgb(0, 0, 0);
-  background-color: rgba(0, 0, 0, 0.4);
 }
 
 .modal-content {
-  background-color: #fefefe;
-  margin: auto;
+  background-color: white;
   padding: 20px;
-  border: 1px solid #888;
-  width: 80%;
-  max-width: 600px;
-  border-radius: 10px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  width: 600px;
 }
 
-.close {
-  color: #aaa;
-  float: right;
-  font-size: 28px;
-  font-weight: bold;
-}
-
-.close:hover,
-.close:focus {
-  color: black;
-  text-decoration: none;
-  cursor: pointer;
-}
-
-.riwayat-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 10px;
-}
-
-.riwayat-table th,
-.riwayat-table td {
-  border: 1px solid #ddd;
-  padding: 8px;
+.modal-title {
   text-align: center;
 }
 
-.riwayat-table th {
+.jadwal-table,
+.slot-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 20px;
+}
+
+.jadwal-table th, .jadwal-table td,
+.slot-table th, .slot-table td {
+  padding: 10px;
+  text-align: left;
+  border-bottom: 1px solid #ccc;
+}
+
+.jadwal-table tbody tr:nth-child(even),
+.slot-table tbody tr:nth-child(even) {
   background-color: #f2f2f2;
+}
+
+.jadwal-table tbody tr:nth-child(odd),
+.slot-table tbody tr:nth-child(odd) {
+  background-color: #ffffff;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 5px;
+}
+
+.form-group input,
+.form-group select {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+.submit-button {
+  padding: 10px 20px;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  background-color: #007BFF;
+  color: white;
+}
+
+.submit-button:hover {
+  background-color: #0056b3;
+}
+
+.table-container {
+  width: 100%;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+}
+
+.table th, .table td {
+  padding: 8px;
+  text-align: left;
+  border-bottom: 1px solid #ccc;
+}
+
+.table th {
+  cursor: pointer;
+}
+
+.table tbody tr:nth-child(even) {
+  background-color: #f2f2f2;
+}
+
+.table tbody tr:nth-child(odd) {
+  background-color: #ffffff;
+}
+
+.detail-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.detail-table tr:nth-child(even) {
+  background-color: #f2f2f2;
+}
+
+.detail-table tr:nth-child(odd) {
+  background-color: #ffffff;
+}
+
+.detail-table td {
+  padding: 8px;
 }
 </style>
