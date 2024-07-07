@@ -1,8 +1,8 @@
 <template>
-  <header :class="['header', { 'header-blur': isBlurred }]">
+  <header :class="['header', { 'header-blur': isBlurred.value }]">
     <img :src="logo" alt="Campus Logo" class="logo">
     <!-- Navigasi untuk desktop -->
-    <nav v-if="!isMobile" class="nav-menu">
+    <nav class="nav-menu">
       <ul class="menu-list">
         <li v-for="item in menuItems" :key="item.name">
           <router-link :to="item.path" class="menu-link">{{ item.name }}</router-link>
@@ -13,19 +13,12 @@
 </template>
 
 <script>
+import { ref, onMounted, onUnmounted, watch } from 'vue';
 import logo from '../assets/logo.png';
-import { inject, ref, onMounted, onUnmounted } from 'vue';
 
 export default {
-  props: ['menuItems'],  // Menerima menuItems sebagai prop
-  data() {
-    return {
-      logo,
-      isBlurred: false
-    };
-  },
-  setup() {
-    const isMobile = inject('isMobile');  // Menerima state isMobile
+  props: ['menuItems'],
+  setup(props) {
     const isBlurred = ref(false);
 
     const handleScroll = () => {
@@ -34,13 +27,19 @@ export default {
 
     onMounted(() => {
       window.addEventListener('scroll', handleScroll);
+      console.log("Header mounted, menuItems:", props.menuItems); // Initial check on mount
     });
 
     onUnmounted(() => {
       window.removeEventListener('scroll', handleScroll);
     });
 
-    return { isMobile, isBlurred };
+    // Watch for changes in menuItems
+    watch(() => props.menuItems, (newVal, oldVal) => {
+      console.log("menuItems changed:", newVal); // Log when menuItems change
+    }, { deep: true });
+
+    return { isBlurred, logo };
   }
 }
 </script>

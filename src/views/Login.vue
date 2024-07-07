@@ -46,11 +46,9 @@ export default {
       this.auth.isAuthenticated = true;
       this.auth.role = this.role;
       // Redirect to appropriate home page based on role
-      if (this.role === 'dosen') {
-        this.$router.push('/dosen');
-      } else {
+
         this.$router.push('/');
-      }
+
     }
   }
 };

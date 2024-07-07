@@ -1,4 +1,4 @@
-<template>
+<!-- <template>
   <div>
     <div :class="['sidebar', { 'sidebar-collapsed': isCollapsed }]" @mouseenter="toggleSidebar" @mouseleave="hideSidebar" v-if="!isMobile">
       <ul>
@@ -204,4 +204,4 @@ a {
   font-size: 22px;
   margin-top: 15px; /* Tambahkan margin atas untuk memberi jarak antara ikon dan nama menu */
 }
-</style>
+</style> -->
