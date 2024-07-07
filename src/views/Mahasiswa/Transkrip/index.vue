@@ -1,5 +1,5 @@
 <template>
-  <h1 class="title">Kartu Hasil Studi (KHS)</h1>
+  <h1 class="title">KARTU HASIL (KHS)</h1>
 
   <div class="main-wrapper">
     <div class="content-wrapper">
