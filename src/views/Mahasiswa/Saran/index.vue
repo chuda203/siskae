@@ -27,22 +27,25 @@ export default {
 
 <style scoped>
 .evaluation-form {
-  max-width: 600px;
-  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* Center items horizontally */
+  justify-content: center; /* Center items vertically */
+  min-height: 100vh; /* Full viewport height */
   padding: 20px;
-  text-align: center;
   background-color: #f9f9f9;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .evaluation-item {
+  width: 100%;
+  max-width: 600px;
   margin-bottom: 20px;
   padding: 10px;
   border: 1px solid #ddd;
   border-radius: 4px;
   background-color: #fff;
   transition: box-shadow 0.3s ease;
+  text-align: center;
 }
 
 .evaluation-item:hover {
@@ -51,7 +54,7 @@ export default {
 
 button {
   padding: 10px 20px;
-  background-color: #4CAF50;
+  background-color: #cccccc;
   color: white;
   border: none;
   border-radius: 4px;
@@ -60,7 +63,7 @@ button {
 }
 
 button:hover {
-  background-color: #45a049;
+  background-color: #007BFF;
 }
 
 h1 {
