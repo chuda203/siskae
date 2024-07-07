@@ -118,6 +118,7 @@
           <thead>
             <tr>
               <th>Nama Mahasiswa</th>
+              <th>NIM</th>
               <th>Status</th>
               <th>Tanggal</th>
             </tr>
@@ -125,7 +126,31 @@
           <tbody>
             <tr v-for="(presensi, index) in selectedHistoriMahasiswa" :key="index">
               <td>{{ presensi.namaMahasiswa }}</td>
-              <td>{{ presensi.status }}</td>
+              <td>{{ presensi.nim }}</td>
+              <td>
+                <div class="status-buttons">
+                  <button
+                    class="status-button"
+                    :class="{'active': presensi.status === 'Hadir'}"
+                    @click="updateStatus(presensi, 'Hadir')"
+                  >Hadir</button>
+                  <button
+                    class="status-button"
+                    :class="{'active': presensi.status === 'Alpa'}"
+                    @click="updateStatus(presensi, 'Alpa')"
+                  >Alpa</button>
+                  <button
+                    class="status-button"
+                    :class="{'active': presensi.status === 'Izin'}"
+                    @click="updateStatus(presensi, 'Izin')"
+                  >Izin</button>
+                  <button
+                    class="status-button"
+                    :class="{'active': presensi.status === 'Sakit'}"
+                    @click="updateStatus(presensi, 'Sakit')"
+                  >Sakit</button>
+                </div>
+              </td>
               <td>{{ presensi.tanggal }}</td>
             </tr>
           </tbody>
@@ -189,8 +214,8 @@ export default {
               tanggal: '2024-08-01',
               waktu: '08:00 - 10:00',
               historiPresensi: [
-                { namaMahasiswa: 'Budi', status: 'Hadir', tanggal: '2024-08-01' },
-                { namaMahasiswa: 'Ani', status: 'Alpa', tanggal: '2024-08-01' }
+                { namaMahasiswa: 'Budi', nim: '123456', status: 'Hadir', tanggal: '2024-08-01' },
+                { namaMahasiswa: 'Ani', nim: '789012', status: 'Alpa', tanggal: '2024-08-01' }
               ]
             },
             {
@@ -199,8 +224,8 @@ export default {
               tanggal: '2024-08-08',
               waktu: '08:00 - 10:00',
               historiPresensi: [
-                { namaMahasiswa: 'Budi', status: 'Hadir', tanggal: '2024-08-08' },
-                { namaMahasiswa: 'Ani', status: 'Alpa', tanggal: '2024-08-08' }
+                { namaMahasiswa: 'Budi', nim: '123456', status: 'Hadir', tanggal: '2024-08-08' },
+                { namaMahasiswa: 'Ani', nim: '789012', status: 'Alpa', tanggal: '2024-08-08' }
               ]
             }
           ],
@@ -227,8 +252,8 @@ export default {
               tanggal: '2024-08-03',
               waktu: '19:00 - 20:00',
               historiPresensi: [
-                { namaMahasiswa: 'Siti', status: 'Hadir', tanggal: '2024-08-03' },
-                { namaMahasiswa: 'Andi', status: 'Alpa', tanggal: '2024-08-03' }
+                { namaMahasiswa: 'Siti', nim: '345678', status: 'Hadir', tanggal: '2024-08-03' },
+                { namaMahasiswa: 'Andi', nim: '901234', status: 'Alpa', tanggal: '2024-08-03' }
               ]
             }
           ],
@@ -255,8 +280,8 @@ export default {
               tanggal: '2024-08-10',
               waktu: '19:00 - 20:00',
               historiPresensi: [
-                { namaMahasiswa: 'Siti', status: 'Hadir', tanggal: '2024-08-10' },
-                { namaMahasiswa: 'Andi', status: 'Alpa', tanggal: '2024-08-10' }
+                { namaMahasiswa: 'Siti', nim: '345678', status: 'Hadir', tanggal: '2024-08-10' },
+                { namaMahasiswa: 'Andi', nim: '901234', status: 'Alpa', tanggal: '2024-08-10' }
               ]
             }
           ],
@@ -307,6 +332,9 @@ export default {
     submitNilai() {
       // Logika untuk submit nilai
       this.closeModal();
+    },
+    updateStatus(presensi, status) {
+      presensi.status = status;
     },
     closeModal() {
       this.showModalBeritaAcara = false;
@@ -538,5 +566,23 @@ export default {
 .presensi-table tbody tr:nth-child(odd),
 .nilai-table tbody tr:nth-child(odd) {
   background-color: #ffffff;
+}
+
+.status-buttons {
+  display: flex;
+  justify-content: space-between;
+}
+
+.status-button {
+  padding: 5px 10px;
+  border: none;
+  border-radius: 20px;
+  cursor: pointer;
+  background-color: #ccc;
+  color: white;
+}
+
+.status-button.active {
+  background-color: #007bff;
 }
 </style>
