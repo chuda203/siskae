@@ -1,5 +1,5 @@
 <template>
-          <h1 class="title">Kartu Rencana Studi (KRS)</h1>
+  <h1 class="title">Kartu Rencana Studi (KRS)</h1>
   <div class="main-wrapper">
     <div class="toggle-view-wrapper">
       <div class="view-toggle" @click="toggleView">
@@ -7,6 +7,7 @@
         <img v-else src="../../../assets/ic_table.png" alt="Table View" />
       </div>
     </div>
+    <div class="sks-quota">Batas SKS: {{ batasSKS }}</div>
     <div class="container">
       <div class="container-content">
         <div class="buttons-container">
@@ -25,7 +26,7 @@
               <p>{{ mataKuliah.namaDosen }}</p>
               <p>Semester {{ mataKuliah.semester }}</p>
               <div class="enrollment-info">{{ mataKuliah.terisi }} / {{ mataKuliah.kapasitas }}</div>
-              <button v-if="!mataKuliah.diambil" :class="['ambil-button', { 'disabled': mataKuliah.terisi >= mataKuliah.kapasitas }]" @click.stop="ambilKRS(mataKuliah, $event)" :disabled="mataKuliah.terisi >= mataKuliah.kapasitas">Ambil</button>
+              <button v-if="!mataKuliah.diambil" :class="['ambil-button', { 'disabled': !canTakeCourse(mataKuliah) || mataKuliah.terisi >= mataKuliah.kapasitas }]" @click.stop="ambilKRS(mataKuliah, $event)" :disabled="!canTakeCourse(mataKuliah) || mataKuliah.terisi >= mataKuliah.kapasitas">Ambil</button>
               <button v-else class="batal-button" @click.stop="hapusKRS(mataKuliah, $event)">Batal</button>
             </div>
           </div>
@@ -54,7 +55,7 @@
                 <td>{{ mataKuliah.semester }}</td>
                 <td>{{ mataKuliah.ruangKelas }}</td>
                 <td>
-                  <button :class="[mataKuliah.diambil ? 'batal-button' : 'ambil-button', { 'disabled': !mataKuliah.diambil && mataKuliah.terisi >= mataKuliah.kapasitas }]" @click="mataKuliah.diambil ? hapusKRS(mataKuliah, $event) : ambilKRS(mataKuliah, $event)" :disabled="!mataKuliah.diambil && mataKuliah.terisi >= mataKuliah.kapasitas">
+                  <button :class="[mataKuliah.diambil ? 'batal-button' : 'ambil-button', { 'disabled': !mataKuliah.diambil && (!canTakeCourse(mataKuliah) || mataKuliah.terisi >= mataKuliah.kapasitas) }]" @click="mataKuliah.diambil ? hapusKRS(mataKuliah, $event) : ambilKRS(mataKuliah, $event)" :disabled="!mataKuliah.diambil && (!canTakeCourse(mataKuliah) || mataKuliah.terisi >= mataKuliah.kapasitas)">
                     {{ mataKuliah.diambil ? 'Batal' : 'Ambil' }}
                   </button>
                 </td>
@@ -86,8 +87,6 @@
 </template>
 
 <script>
-import { faL } from '@fortawesome/free-solid-svg-icons';
-
 export default {
   data() {
     return {
@@ -97,22 +96,22 @@ export default {
       sortOrder: 'asc',
       showModal: false,
       selectedMataKuliah: {},
+      batasSKS: 20,
+      totalSKS: 0,
       mataKuliahTersedia: [
         { kode: 'IF101', nama: 'Pemrograman Dasar', sks: 3, diambil: false, namaDosen: 'Dr. John Doe', semester: 1, ruangKelas: 'A101', terisi: 10, kapasitas: 30 },
         { kode: 'IF102', nama: 'Struktur Data', sks: 3, diambil: true, namaDosen: 'Dr. Jane Smith', semester: 2, ruangKelas: 'B201', terisi: 25, kapasitas: 30 },
         { kode: 'IF201', nama: 'Algoritma dan Pemrograman', sks: 4, diambil: true, namaDosen: 'Prof. Alice Brown', semester: 3, ruangKelas: 'C301', terisi: 20, kapasitas: 25 },
         { kode: 'IF202', nama: 'Basis Data', sks: 4, diambil: false, namaDosen: 'Prof. Bob White', semester: 4, ruangKelas: 'D401', terisi: 18, kapasitas: 20 },
         { kode: 'IF203', nama: 'Pemrograman Lanjut', sks: 3, diambil: false, namaDosen: 'Dr. Chris Black', semester: 5, ruangKelas: 'E501', terisi: 15, kapasitas: 15 },
-        { kode: 'IF203', nama: 'Pemrograman Dasar', sks: 3, diambil: true, namaDosen: 'Dr. Chris Black', semester: 5, ruangKelas: 'E501', terisi: 15, kapasitas: 15 },
-        { kode: 'IF203', nama: 'Cloud Computing', sks: 3, diambil: true, namaDosen: 'Dr. Chris Black', semester: 5, ruangKelas: 'E501', terisi: 14, kapasitas: 15 },
-        { kode: 'IF203', nama: 'Sistem Informasi', sks: 3, diambil: true, namaDosen: 'Dr. Chris Black', semester: 5, ruangKelas: 'E501', terisi: 14, kapasitas: 15 },
-        { kode: 'IF203', nama: 'Logika Baru', sks: 2, diambil: true, namaDosen: 'Dr. Chris Black', semester: 5, ruangKelas: 'E501', terisi: 14, kapasitas: 15 },
-        { kode: 'IF203', nama: 'Android Development', sks: 3, diambil: true, namaDosen: 'Dr. Chris Black', semester: 5, ruangKelas: 'E501', terisi: 14, kapasitas: 15 },
-        { kode: 'IF203', nama: 'KKN', sks: 3, diambil: true, namaDosen: 'Dr. Chris Black', semester: 5, ruangKelas: 'E501', terisi: 14, kapasitas: 15 },
-        { kode: 'IF203', nama: 'Skripsi', sks: 2, diambil: true, namaDosen: 'Dr. Chris Black', semester: 5, ruangKelas: 'E501', terisi: 14, kapasitas: 15 },
-        { kode: 'IF203', nama: 'Kerja Praktik', sks: 3, diambil: true, namaDosen: 'Dr. Chris Black', semester: 5, ruangKelas: 'E501', terisi: 15, kapasitas: 15 },
-        { kode: 'IF203', nama: 'AI', sks: 3, diambil: true, namaDosen: 'Dr. Chris Black', semester: 5, ruangKelas: 'E501', terisi: 15, kapasitas: 15 },
-        { kode: 'IF203', nama: 'Pemrograman Lanjut', sks: 2, diambil: true, namaDosen: 'Dr. Chris Black', semester: 5, ruangKelas: 'E501', terisi: 15, kapasitas: 15 },
+
+        { kode: 'IF203', nama: 'Pemrograman Lanjut', sks: 2, diambil: false, namaDosen: 'Dr. Chris Black', semester: 5, ruangKelas: 'E501', terisi: 5, kapasitas: 15 },
+        { kode: 'IF203', nama: 'Pemrograman Lanjut', sks: 3, diambil: false, namaDosen: 'Dr. Chris Black', semester: 5, ruangKelas: 'E501', terisi: 5, kapasitas: 15 },
+        { kode: 'IF203', nama: 'Pemrograman Lanjut', sks: 5, diambil: false, namaDosen: 'Dr. Chris Black', semester: 5, ruangKelas: 'E501', terisi: 5, kapasitas: 15 },
+        { kode: 'IF203', nama: 'Pemrograman Lanjut', sks: 3, diambil: false, namaDosen: 'Dr. Chris Black', semester: 5, ruangKelas: 'E501', terisi: 5, kapasitas: 15 },
+        { kode: 'IF203', nama: 'Pemrograman Lanjut', sks: 4, diambil: false, namaDosen: 'Dr. Chris Black', semester: 5, ruangKelas: 'E501', terisi: 15, kapasitas: 15 },
+        { kode: 'IF203', nama: 'Pemrograman Lanjut', sks: 2, diambil: false, namaDosen: 'Dr. Chris Black', semester: 5, ruangKelas: 'E501', terisi: 15, kapasitas: 15 },
+        { kode: 'IF203', nama: 'Pemrograman Lanjut', sks: 3, diambil: false, namaDosen: 'Dr. Chris Black', semester: 5, ruangKelas: 'E501', terisi: 15, kapasitas: 15 },
         // More courses...
       ]
     };
@@ -164,11 +163,15 @@ export default {
         this.sortOrder = 'asc';
       }
     },
+    canTakeCourse(mataKuliah) {
+      return this.totalSKS + mataKuliah.sks <= this.batasSKS;
+    },
     ambilKRS(mataKuliah, event) {
       event.stopPropagation(); // Prevent triggering other click events
-      if (!mataKuliah.diambil && mataKuliah.terisi < mataKuliah.kapasitas) {
+      if (!mataKuliah.diambil && this.canTakeCourse(mataKuliah) && mataKuliah.terisi < mataKuliah.kapasitas) {
         mataKuliah.diambil = true;
         mataKuliah.terisi++;
+        this.totalSKS += mataKuliah.sks;
       }
       this.$forceUpdate(); // To ensure reactivity
     },
@@ -177,6 +180,7 @@ export default {
       if (mataKuliah.diambil) {
         mataKuliah.diambil = false;
         mataKuliah.terisi--;
+        this.totalSKS -= mataKuliah.sks;
       }
       this.$forceUpdate(); // To ensure reactivity
     },
@@ -192,6 +196,14 @@ export default {
 </script>
 
 <style scoped>
+.sks-quota {
+  position: absolute;
+  top: 25px;
+  right: 220px;
+  font-size: 1em;
+  color: #333;
+}
+
 .enrollment-info {
   position: absolute;
   bottom: 10px;
@@ -199,6 +211,7 @@ export default {
   font-size: 0.85em;
   color: #666;
 }
+
 .main-wrapper {
   display: flex;
   align-items: flex-start;
@@ -228,7 +241,7 @@ export default {
   border: none;
   cursor: pointer;
   width: 40px;
-  height: 40px
+  height: 40px;
 }
 
 .view-toggle img {

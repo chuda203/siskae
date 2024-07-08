@@ -28,8 +28,7 @@
               <p>{{ jadwal.hari }}, {{ jadwal.waktu }} WIB</p>
               <p>{{ jadwal.sks }} SKS</p>
               <p>Ruang: {{ jadwal.ruangKelas }}</p>
-              <button @click="isiBeritaAcara(jadwal)" class="aksi-button">Berita Acara</button>
-              <button @click="showBeritaAcara(jadwal)" class="aksi-button">Histori Presensi</button>
+              <button @click="openBeritaAcaraModal(jadwal)" class="aksi-button">Berita Acara</button>
               <button @click="inputNilai(jadwal)" class="aksi-button">Input Nilai</button>
             </div>
           </div>
@@ -51,8 +50,7 @@
             <tbody>
               <tr v-for="(jadwal, index) in filteredJadwalKuliah" :key="index">
                 <td>
-                  <button @click="isiBeritaAcara(jadwal)" class="aksi-button">Berita Acara</button>
-                  <button @click="showBeritaAcara(jadwal)" class="aksi-button">Histori Presensi</button>
+                  <button @click="openBeritaAcaraModal(jadwal)" class="aksi-button">Berita Acara</button>
                   <button @click="inputNilai(jadwal)" class="aksi-button">Input Nilai</button>
                 </td>
                 <td>{{ jadwal.hari }}</td>
@@ -71,20 +69,6 @@
 
     <!-- Modal Berita Acara -->
     <div v-if="showModalBeritaAcara" class="modal-overlay" @click="closeModal">
-      <div class="modal-content" @click.stop>
-        <h3 class="modal-title">Isi Berita Acara</h3>
-        <form @submit.prevent="submitBeritaAcara">
-          <div class="form-group">
-            <label for="beritaAcara">Berita Acara</label>
-            <textarea id="beritaAcara" v-model="formBeritaAcara" required></textarea>
-          </div>
-          <button type="submit" class="submit-button">Submit</button>
-        </form>
-      </div>
-    </div>
-
-    <!-- Modal Histori Presensi -->
-    <div v-if="showModalHistoriPresensi" class="modal-overlay" @click="closeModal">
       <div class="modal-content" @click.stop>
         <h3 class="modal-title">Detail Berita Acara</h3>
         <table class="berita-acara-table">
@@ -107,6 +91,32 @@
             </tr>
           </tbody>
         </table>
+        <div v-if="!showIsiBeritaAcaraForm">
+          <button @click="toggleIsiBeritaAcaraForm" class="aksi-button plus-button">Tambah Berita Acara</button>
+        </div>
+        <div v-if="showIsiBeritaAcaraForm" class="isi-berita-acara-form">
+          <h3 class="modal-title">Isi Berita Acara</h3>
+          <form @submit.prevent="submitBeritaAcara">
+            <div class="form-group">
+              <label for="beritaAcara">Berita Acara</label>
+              <textarea id="beritaAcara" v-model="formBeritaAcara" required></textarea>
+            </div>
+            <div class="form-group">
+              <label for="waktuOption">Waktu</label>
+              <div>
+                <button type="button" @click="setWaktuOption('saatIni')" :class="{'active': waktuOption === 'saatIni'}">Saat Ini</button>
+                <button type="button" @click="setWaktuOption('custom')" :class="{'active': waktuOption === 'custom'}">Custom</button>
+              </div>
+            </div>
+            <div v-if="waktuOption === 'custom'" class="form-group">
+              <label for="customDate">Tanggal</label>
+              <input type="date" id="customDate" v-model="formCustomDate" />
+              <label for="customTime">Waktu</label>
+              <input type="time" id="customTime" v-model="formCustomTime" />
+            </div>
+            <button type="submit" class="submit-button">Submit</button>
+          </form>
+        </div>
       </div>
     </div>
 
@@ -161,18 +171,33 @@
     <!-- Modal Input Nilai -->
     <div v-if="showModalInputNilai" class="modal-overlay" @click="closeModal">
       <div class="modal-content" @click.stop>
-        <h3 class="modal-title">Input Nilai Mahasiswa</h3>
+        <div class="modal-header">
+          <h3 class="modal-title">Input Nilai Mahasiswa</h3>
+          <button @click="toggleEditAll" :class="[editAll ? 'save-button' : 'edit-button']">
+            {{ editAll ? 'Simpan Semua' : 'Edit Semua' }}
+          </button>
+        </div>
         <table class="nilai-table">
           <thead>
             <tr>
               <th>Nama Mahasiswa</th>
-              <th>Nilai</th>
+              <th>NIM</th>
+              <th>Nilai UTS</th>
+              <th>Nilai UAS</th>
+              <th>Aksi</th>
             </tr>
           </thead>
           <tbody>
             <tr v-for="(nilai, index) in selectedInputNilai" :key="index">
               <td>{{ nilai.namaMahasiswa }}</td>
-              <td><input type="text" v-model="nilai.nilai" /></td>
+              <td>{{ nilai.nim }}</td>
+              <td><input type="text" v-model="nilai.uts" :readonly="!nilai.isEditing" class="nilai-input" /></td>
+              <td><input type="text" v-model="nilai.uas" :readonly="!nilai.isEditing" class="nilai-input" /></td>
+              <td>
+                <button @click="toggleEditNilai(nilai)" :class="[nilai.isEditing ? 'save-button' : 'edit-button']">
+                  {{ nilai.isEditing ? 'Simpan' : 'Edit' }}
+                </button>
+              </td>
             </tr>
           </tbody>
         </table>
@@ -181,6 +206,7 @@
     </div>
   </div>
 </template>
+
 <script>
 export default {
   data() {
@@ -188,13 +214,17 @@ export default {
       selectedHari: 'all',
       tableView: false,
       showModalBeritaAcara: false,
-      showModalHistoriPresensi: false,
       showModalHistoriMahasiswa: false,
       showModalInputNilai: false,
+      showIsiBeritaAcaraForm: false,
+      waktuOption: 'saatIni',
       formBeritaAcara: '',
+      formCustomDate: '',
+      formCustomTime: '',
       selectedBeritaAcara: [],
       selectedHistoriMahasiswa: [],
       selectedInputNilai: [],
+      editAll: false,
       jadwalKuliah: [
         {
           ruangKelas: 'A101',
@@ -230,8 +260,8 @@ export default {
             }
           ],
           inputNilai: [
-            { namaMahasiswa: 'Budi', nilai: '' },
-            { namaMahasiswa: 'Ani', nilai: '' }
+            { namaMahasiswa: 'Budi', nim: '123456', uts: '', uas: '', isEditing: false },
+            { namaMahasiswa: 'Ani', nim: '789012', uts: '', uas: '', isEditing: false }
           ]
         },
         {
@@ -258,8 +288,8 @@ export default {
             }
           ],
           inputNilai: [
-            { namaMahasiswa: 'Siti', nilai: '' },
-            { namaMahasiswa: 'Andi', nilai: '' }
+            { namaMahasiswa: 'Siti', nim: '345678', uts: '', uas: '', isEditing: false },
+            { namaMahasiswa: 'Andi', nim: '901234', uts: '', uas: '', isEditing: false }
           ]
         },
         {
@@ -286,8 +316,8 @@ export default {
             }
           ],
           inputNilai: [
-            { namaMahasiswa: 'Siti', nilai: '' },
-            { namaMahasiswa: 'Andi', nilai: '' }
+            { namaMahasiswa: 'Siti', nim: '345678', uts: '', uas: '', isEditing: false },
+            { namaMahasiswa: 'Andi', nim: '901234', uts: '', uas: '', isEditing: false }
           ]
         },
         // Tambah data jadwal lainnya
@@ -310,12 +340,20 @@ export default {
         this.selectedHari = 'all'; // Reset filter when switching to table view
       }
     },
-    isiBeritaAcara(jadwal) {
+    openBeritaAcaraModal(jadwal) {
+      this.selectedBeritaAcara = jadwal.beritaAcara;
       this.showModalBeritaAcara = true;
     },
-    showBeritaAcara(jadwal) {
-      this.selectedBeritaAcara = jadwal.beritaAcara;
-      this.showModalHistoriPresensi = true;
+    toggleIsiBeritaAcaraForm() {
+      this.showIsiBeritaAcaraForm = !this.showIsiBeritaAcaraForm;
+    },
+    setWaktuOption(option) {
+      this.waktuOption = option;
+      if (option === 'saatIni') {
+        const now = new Date();
+        this.formCustomDate = now.toISOString().substr(0, 10);
+        this.formCustomTime = now.toTimeString().substr(0, 5);
+      }
     },
     showHistoriMahasiswa(berita) {
       this.selectedHistoriMahasiswa = berita.historiPresensi;
@@ -325,12 +363,22 @@ export default {
       this.selectedInputNilai = jadwal.inputNilai;
       this.showModalInputNilai = true;
     },
+    toggleEditNilai(nilai) {
+      nilai.isEditing = !nilai.isEditing;
+    },
+    toggleEditAll() {
+      this.editAll = !this.editAll;
+      this.selectedInputNilai.forEach(nilai => {
+        nilai.isEditing = this.editAll;
+      });
+    },
     submitBeritaAcara() {
       // Logika untuk submit berita acara
       this.closeModal();
     },
     submitNilai() {
       // Logika untuk submit nilai
+      this.toggleEditAll(); // Reset all editing states
       this.closeModal();
     },
     updateStatus(presensi, status) {
@@ -338,17 +386,22 @@ export default {
     },
     closeModal() {
       this.showModalBeritaAcara = false;
-      this.showModalHistoriPresensi = false;
       this.showModalHistoriMahasiswa = false;
       this.showModalInputNilai = false;
       this.formBeritaAcara = '';
+      this.formCustomDate = '';
+      this.formCustomTime = '';
       this.selectedBeritaAcara = [];
       this.selectedHistoriMahasiswa = [];
       this.selectedInputNilai = [];
+      this.showIsiBeritaAcaraForm = false;
+      this.waktuOption = 'saatIni';
+      this.editAll = false;
     }
   }
 };
 </script>
+
 <style scoped>
 .main-wrapper {
   display: flex;
@@ -484,6 +537,11 @@ export default {
   background-color: #0056b3;
 }
 
+.plus-button {
+  display: block;
+  margin: 20px auto;
+}
+
 .modal-overlay {
   position: fixed;
   top: 0;
@@ -508,6 +566,13 @@ export default {
   text-align: center;
 }
 
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
 .form-group {
   margin-bottom: 20px;
 }
@@ -517,7 +582,8 @@ export default {
   margin-bottom: 5px;
 }
 
-.form-group textarea {
+.form-group textarea,
+.form-group input {
   width: 100%;
   padding: 10px;
   border: 1px solid #ccc;
@@ -584,5 +650,20 @@ export default {
 
 .status-button.active {
   background-color: #007bff;
+}
+
+.edit-button {
+  background-color: #007bff;
+  color: white;
+}
+
+.save-button {
+  background-color: #28a745;
+  color: white;
+}
+
+.nilai-input {
+  width: 50px;
+  text-align: center;
 }
 </style>

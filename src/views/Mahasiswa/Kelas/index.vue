@@ -1,5 +1,5 @@
 <template>
-          <h1 class="title">Jadwal Kuliah</h1>
+  <h1 class="title">Jadwal Kuliah</h1>
 
   <div class="main-wrapper">
     <div class="toggle-view-wrapper">
@@ -8,6 +8,7 @@
         <img v-else src="../../../assets/ic_table.png" alt="Table View" />
       </div>
     </div>
+    <button class="all-grades-button" @click="showAllGrades">Semua Nilai</button>
     <div class="container">
       <div class="container-content">
         <div class="buttons-container">
@@ -33,6 +34,13 @@
               <button class="presensi-button" :class="{ hadir: jadwal.hadir }" @click.stop="togglePresensi(jadwal)">
                 {{ jadwal.hadir ? 'Hadir' : 'Presensi' }}
               </button>
+              <button class="nilai-button" @click.stop="toggleNilai(jadwal)">
+                {{ jadwal.showNilai ? 'Tutup Nilai' : 'Lihat Nilai' }}
+              </button>
+              <div v-if="jadwal.showNilai">
+                <p>UTS: {{ jadwal.nilaiUTS }}</p>
+                <p>UAS: {{ jadwal.nilaiUAS }}</p>
+              </div>
             </div>
           </div>
         </div>
@@ -48,6 +56,7 @@
                 <th @click="sortTable('semester')">Semester</th>
                 <th @click="sortTable('ruangKelas')">Ruang Kelas</th>
                 <th>Status</th>
+                <th>Nilai</th>
               </tr>
             </thead>
             <tbody>
@@ -60,6 +69,15 @@
                 <td>{{ jadwal.ruangKelas }}</td>
                 <td>
                   <button @click="togglePresensi(jadwal)">{{ jadwal.hadir ? 'Hadir' : 'Presensi' }}</button>
+                </td>
+                <td>
+                  <button @click="toggleNilai(jadwal)">
+                    {{ jadwal.showNilai ? 'Tutup Nilai' : 'Lihat Nilai' }}
+                  </button>
+                  <div v-if="jadwal.showNilai">
+                    <p>UTS: {{ jadwal.nilaiUTS }}</p>
+                    <p>UAS: {{ jadwal.nilaiUAS }}</p>
+                  </div>
                 </td>
               </tr>
             </tbody>
@@ -83,8 +101,33 @@
         </table>
       </div>
     </div>
+    <!-- Modal Semua Nilai -->
+    <div v-if="showModalAllGrades" class="modal-overlay" @click="closeModal">
+      <div class="modal-content" @click.stop>
+        <h3 class="modal-title">Semua Nilai Mata Kuliah</h3>
+        <table class="grades-table">
+          <thead>
+            <tr>
+              <th>Nama Mata Kuliah</th>
+              <th>Kode</th>
+              <th>UTS</th>
+              <th>UAS</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="(jadwal, index) in jadwalKuliah" :key="index">
+              <td>{{ jadwal.namaMataKuliah }}</td>
+              <td>{{ jadwal.kodeMataKuliah }}</td>
+              <td>{{ jadwal.nilaiUTS }}</td>
+              <td>{{ jadwal.nilaiUAS }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
   </div>
 </template>
+
 <script>
 export default {
   data() {
@@ -104,35 +147,28 @@ export default {
           sks: 3,
           namaDosen: 'Dr. John Doe',
           hadir: false,
-          presensiHistory: ['2024-08-01 Hadir', '2024-08-08 Hadir']
+          showNilai: false,
+          nilaiUTS: 85,
+          nilaiUAS: 90
         },
         {
           ruangKelas: 'B202',
           hari: 'Rabu',
-          waktu: '19:00 - 20:00',
+          waktu: '19:00 - 21:00',
           kodeMataKuliah: 'IF102',
           namaMataKuliah: 'Struktur Data',
           semester: 2,
           sks: 3,
           namaDosen: 'Dr. Jane Smith',
           hadir: false,
-          presensiHistory: ['2024-08-03 Masuk', '2024-08-10 Hadir']
+          showNilai: false,
+          nilaiUTS: 78,
+          nilaiUAS: 88
         },
-        {
-          ruangKelas: 'B202',
-          hari: 'Selasa',
-          waktu: '19:00 - 20:00',
-          kodeMataKuliah: 'IF102',
-          namaMataKuliah: 'Struktur Data',
-          semester: 2,
-          sks: 3,
-          namaDosen: 'Dr. Jane Smith',
-          hadir: false,
-          presensiHistory: ['2024-08-03 Masuk', '2024-08-10 Hadir']
-        },
-        // More schedules...
+        // Jadwal lainnya...
       ],
       showModal: false,
+      showModalAllGrades: false,
       selectedJadwal: {}
     };
   },
@@ -193,10 +229,18 @@ export default {
     },
     closeModal() {
       this.showModal = false;
+      this.showModalAllGrades = false;
+    },
+    toggleNilai(jadwal) {
+      jadwal.showNilai = !jadwal.showNilai;
+    },
+    showAllGrades() {
+      this.showModalAllGrades = true;
     }
   }
 };
 </script>
+
 <style scoped>
 .main-wrapper {
   display: flex;
@@ -209,6 +253,18 @@ export default {
   position: absolute;
   right: 120px;
   top: 25px;
+}
+
+.all-grades-button {
+  position: absolute;
+  right: 220px;
+  top: 25px;
+  padding: 10px 20px;
+  border: none;
+  background-color: #007BFF;
+  color: white;
+  border-radius: 20px;
+  cursor: pointer;
 }
 
 .container {
@@ -318,7 +374,8 @@ export default {
   margin: 5px 0;
 }
 
-.presensi-button {
+.presensi-button,
+.nilai-button {
   padding: 10px 20px;
   border: none;
   cursor: pointer;
@@ -377,12 +434,14 @@ export default {
 }
 
 .table tbody tr:nth-child(even),
-.detail-table tr:nth-child(even) {
+.detail-table tr:nth-child(even),
+.grades-table tr:nth-child(even) {
   background-color: #f2f2f2;
 }
 
 .table tbody tr:nth-child(odd),
-.detail-table tr:nth-child(odd) {
+.detail-table tr:nth-child(odd),
+.grades-table tr:nth-child(odd) {
   background-color: #ffffff;
 }
 </style>
