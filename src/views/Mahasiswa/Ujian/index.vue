@@ -6,6 +6,7 @@
       <button @click="selectedType = 'cetakKartuUjian'">Cetak Kartu Ujian</button>
     </div>
 
+    <!-- Jadwal Ujian Section -->
     <div v-if="selectedType === 'jadwalUjian'" class="jadwal-ujian">
       <h2>Jadwal Ujian</h2>
       <table>
@@ -26,7 +27,7 @@
             <td>{{ ujian.hari }}</td>
             <td>{{ ujian.waktu }}</td>
             <td>{{ ujian.kodeMataKuliah }}</td>
-            <td>{{ ujian.namaKuliah }}</td>
+            <td>{{ ujian.namaMataKuliah }}</td>
             <td>{{ ujian.semester }}</td>
             <td>{{ ujian.bobotSKS }}</td>
             <td>{{ ujian.namaDosen }}</td>
@@ -36,6 +37,7 @@
       </table>
     </div>
 
+    <!-- Cetak Kartu Ujian Section -->
     <div v-if="selectedType === 'cetakKartuUjian'" class="cetak-kartu-ujian">
       <h2>Cetak Kartu Ujian</h2>
       <div class="kartu-ujian">
@@ -58,15 +60,15 @@
               <td>{{ mataKuliah.nama }}</td>
               <td>{{ mataKuliah.sks }}</td>
               <td>{{ mataKuliah.dosen }}</td>
-              <td></td>
+              <td></td> <!-- Placeholder for Paraf Pengawas -->
             </tr>
           </tbody>
         </table>
         <div class="ttd-section">
           <div class="ttd-container">
-            <div class="ttd"></div>
+            <div class="ttd"></div> <!-- Placeholder for Tanda Tangan Mahasiswa -->
             <div class="foto-container">
-              <div class="foto-placeholder"></div>
+              <div class="foto-placeholder"></div> <!-- Placeholder for Foto 3x4 -->
               <p>Foto 3x4</p>
             </div>
           </div>
@@ -85,8 +87,8 @@ export default {
     return {
       selectedType: 'jadwalUjian',
       jadwalUjian: [
-        { hari: 'Senin', waktu: '08:00 - 10:00', kodeMataKuliah: 'MK001', namaKuliah: 'Matematika', semester: 1, bobotSKS: 3, namaDosen: 'Dr. John Doe', ruangKelas: 'R101' },
-        { hari: 'Selasa', waktu: '10:00 - 12:00', kodeMataKuliah: 'MK002', namaKuliah: 'Fisika', semester: 1, bobotSKS: 3, namaDosen: 'Dr. Jane Doe', ruangKelas: 'R102' }
+        { hari: 'Senin', waktu: '08:00 - 10:00', kodeMataKuliah: 'MK001', namaMataKuliah: 'Matematika', semester: 1, bobotSKS: 3, namaDosen: 'Dr. John Doe', ruangKelas: 'R101' },
+        { hari: 'Selasa', waktu: '10:00 - 12:00', kodeMataKuliah: 'MK002', namaMataKuliah: 'Fisika', semester: 1, bobotSKS: 3, namaDosen: 'Dr. Jane Doe', ruangKelas: 'R102' }
         // Add more exam schedules as needed
       ],
       mahasiswa: {
