@@ -22,7 +22,8 @@
               <div class="divider"></div>
             </div>
             <div class="card-body">
-              <p>{{ item.namaDosen }}</p>
+              <p>{{ item.namaMahasiswa }}</p>
+              <p>{{ item.nim }}</p>
               <p>{{ item.judul }}</p>
               <p>{{ item.status }}</p>
               <button @click="ajukanJadwal(item)" class="ajukan-jadwal-button">Ajukan Jadwal</button>
@@ -35,7 +36,8 @@
             <thead>
               <tr>
                 <th>Topik</th>
-                <th>Dosen Pembimbing</th>
+                <th>Nama Mahasiswa</th>
+                <th>NIM</th>
                 <th>Judul</th>
                 <th>Status</th>
                 <th>Aksi</th>
@@ -44,7 +46,8 @@
             <tbody>
               <tr v-for="(item, index) in filteredBimbingan" :key="`table-${index}`">
                 <td>{{ item.topik }}</td>
-                <td>{{ item.namaDosen }}</td>
+                <td>{{ item.namaMahasiswa }}</td>
+                <td>{{ item.nim }}</td>
                 <td>{{ item.judul }}</td>
                 <td>{{ item.status }}</td>
                 <td>
@@ -110,6 +113,7 @@
     </div>
   </div>
 </template>
+
 <script>
 export default {
   data() {
@@ -128,15 +132,15 @@ export default {
       },
       selectedStudent: null,
       bimbinganList: [
-        { topik: 'KRS', namaDosen: 'Dr. John Doe', status: 'Belum Bimbingan', judul: 'Semester 1', type: 'krs', jadwal: [] },
-        { topik: 'Kerja Praktik', namaDosen: 'Dr. Jane Smith', status: 'ACC', judul: 'Analisis Sistem Informasi', type: 'kp', jadwal: [] },
-        { topik: 'Skripsi', namaDosen: 'Prof. Alice Brown', status: 'Proses Bimbingan', judul: 'Pengembangan Aplikasi Mobile', type: 'skripsi', jadwal: [] },
-        { topik: 'KRS', namaDosen: 'Dr. Chris Black', status: 'Belum Bimbingan', judul: 'Semester 2', type: 'krs', jadwal: [] },
-        { topik: 'Kerja Praktik', namaDosen: 'Dr. Sarah White', status: 'ACC', judul: 'Pengembangan Sistem E-Commerce', type: 'kp', jadwal: [] },
-        { topik: 'Skripsi', namaDosen: 'Prof. Michael Green', status: 'Proses Bimbingan', judul: 'Analisis Data Big Data', type: 'skripsi', jadwal: [] },
-        { topik: 'KRS', namaDosen: 'Dr. Anna Red', status: 'ACC', judul: 'Semester 3', type: 'krs', jadwal: [] },
-        { topik: 'Kerja Praktik', namaDosen: 'Dr. Paul Yellow', status: 'ACC', judul: 'Desain User Interface', type: 'kp', jadwal: [] },
-        { topik: 'Skripsi', namaDosen: 'Prof. Robert Blue', status: 'Belum Bimbingan', judul: 'Keamanan Jaringan', type: 'skripsi', jadwal: [] },
+        { topik: 'KRS', namaMahasiswa: 'John Doe', nim: '123456789', status: 'Belum Bimbingan', judul: 'Semester 1', type: 'krs', jadwal: [] },
+        { topik: 'Kerja Praktik', namaMahasiswa: 'Jane Smith', nim: '987654321', status: 'ACC', judul: 'Analisis Sistem Informasi', type: 'kp', jadwal: [] },
+        { topik: 'Skripsi', namaMahasiswa: 'Alice Brown', nim: '456789123', status: 'Proses Bimbingan', judul: 'Pengembangan Aplikasi Mobile', type: 'skripsi', jadwal: [] },
+        { topik: 'KRS', namaMahasiswa: 'Chris Black', nim: '654321987', status: 'Belum Bimbingan', judul: 'Semester 2', type: 'krs', jadwal: [] },
+        { topik: 'Kerja Praktik', namaMahasiswa: 'Sarah White', nim: '321987654', status: 'ACC', judul: 'Pengembangan Sistem E-Commerce', type: 'kp', jadwal: [] },
+        { topik: 'Skripsi', namaMahasiswa: 'Michael Green', nim: '789123456', status: 'Proses Bimbingan', judul: 'Analisis Data Big Data', type: 'skripsi', jadwal: [] },
+        { topik: 'KRS', namaMahasiswa: 'Anna Red', nim: '987123456', status: 'ACC', judul: 'Semester 3', type: 'krs', jadwal: [] },
+        { topik: 'Kerja Praktik', namaMahasiswa: 'Paul Yellow', nim: '123987456', status: 'ACC', judul: 'Desain User Interface', type: 'kp', jadwal: [] },
+        { topik: 'Skripsi', namaMahasiswa: 'Robert Blue', nim: '654789123', status: 'Belum Bimbingan', judul: 'Keamanan Jaringan', type: 'skripsi', jadwal: [] },
         // Tambah data bimbingan lainnya
       ],
     };
@@ -177,7 +181,7 @@ export default {
         waktu: this.formJadwal.waktu,
         ruang: this.formJadwal.ruang
       });
-      console.log(`Jadwal diajukan untuk ${this.selectedStudent.nama}: Tanggal: ${this.formJadwal.tanggal}, Waktu: ${this.formJadwal.waktu}, Ruang: ${this.formJadwal.ruang}`);
+      console.log(`Jadwal diajukan untuk ${this.selectedStudent.namaMahasiswa}: Tanggal: ${this.formJadwal.tanggal}, Waktu: ${this.formJadwal.waktu}, Ruang: ${this.formJadwal.ruang}`);
       this.formJadwal = {
         tanggal: '',
         waktu: '',
@@ -199,6 +203,7 @@ export default {
   }
 };
 </script>
+
 <style scoped>
 .main-wrapper {
   display: flex;
