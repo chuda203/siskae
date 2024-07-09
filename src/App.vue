@@ -11,7 +11,7 @@
 <script>
 import Header from './components/Header.vue';
 import FooterComponent from './components/Footer.vue';
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, watch, inject } from 'vue';
 
 export default {
   components: {
@@ -19,6 +19,7 @@ export default {
     FooterComponent
   },
   setup() {
+    const auth = inject('auth'); // Inject auth state
     const isMobile = ref(false);
     const menuItems = ref([]);
 
@@ -26,26 +27,40 @@ export default {
       isMobile.value = window.innerWidth <= 768;
     };
 
-    const getMenuItems = () => [
-      { name: 'Beranda', path: '/', icon: 'home' },
-      { name: 'Bimbingan', path: '/bimbingan', icon: 'bullhorn' },
-      { name: 'Kelas', path: '/kelas', icon: 'calendar-check' },
-      { name: 'KRS', path: '/krs', icon: 'edit' },
-      { name: 'Publikasi', path: '/publikasi', icon: 'pencil-alt' },
-      { name: 'Saran', path: '/saran', icon: 'graduation-cap' },
-      { name: 'Transkrip', path: '/transkrip', icon: 'file-alt' },
-      { name: 'Ujian', path: '/ujian', icon: 'calendar' }
-    ];
+    const getMenuItems = (role) => {
+      if (role === 'dosen') {
+        return [
+          { name: 'Beranda', path: '/dosen/beranda', icon: 'home' },
+          { name: 'Bimbingan', path: '/bimbingan', icon: 'bullhorn' },
+          { name: 'Mata Kuliah', path: '/mata-kuliah', icon: 'book' },
+          { name: 'Publikasi', path: '/publikasi', icon: 'pencil-alt' },
+          { name: 'Riwayat', path: '/riwayat', icon: 'chart-line' },
+          { name: 'Saran', path: '/saran', icon: 'graduation-cap' },
+          { name: 'Ujian', path: '/ujian', icon: 'calendar' }
+        ];
+      } else {
+        return [
+          { name: 'Beranda', path: '/', icon: 'home' },
+          { name: 'Bimbingan', path: '/bimbingan', icon: 'bullhorn' },
+          { name: 'Kelas', path: '/kelas', icon: 'calendar-check' },
+          { name: 'KRS', path: '/krs', icon: 'edit' },
+          { name: 'Publikasi', path: '/publikasi', icon: 'pencil-alt' },
+          { name: 'Saran', path: '/saran', icon: 'graduation-cap' },
+          { name: 'Transkrip', path: '/transkrip', icon: 'file-alt' },
+          { name: 'Ujian', path: '/ujian', icon: 'calendar' }
+        ];
+      }
+    };
 
     onMounted(() => {
       window.addEventListener('resize', checkWindowSize);
       checkWindowSize();
-      menuItems.value = getMenuItems();
+      menuItems.value = getMenuItems(auth.role);
     });
 
-    window.onunload = () => {
-      window.removeEventListener('resize', checkWindowSize);
-    };
+    watch(() => auth.role, (newRole) => {
+      menuItems.value = getMenuItems(newRole);
+    });
 
     return { isMobile, menuItems };
   }
