@@ -1,3 +1,4 @@
+// router.js
 import { createRouter, createWebHistory } from 'vue-router';
 
 import Beranda_Mahasiswa from './views/Mahasiswa/Beranda/index.vue';
@@ -18,8 +19,8 @@ import Login from './views/Login.vue';
 import Register from './views/Register.vue';
 
 const routes = [
-  { path: '/login', name: 'login', component: Login },
-  { path: '/register', name: 'register', component: Register },
+  { path: '/login', name: 'login', component: Login, meta: { hideHeader: true, hideFooter: true } },
+  { path: '/register', name: 'register', component: Register, meta: { hideHeader: true, hideFooter: true } },
   { path: '/', name: 'beranda', component: Beranda_Mahasiswa, meta: { roles: ['mahasiswa'] } },
   { path: '/kelas', name: 'kelas', component: Kelas, meta: { roles: ['mahasiswa'] } },
   { path: '/krs', name: 'krs', component: KRS, meta: { roles: ['mahasiswa'] } },

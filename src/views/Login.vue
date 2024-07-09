@@ -20,6 +20,7 @@
         </div>
         <button type="submit">Login</button>
       </form>
+      <button @click="loginWithGoogle">Login with Google</button>
       <router-link to="/register">Register</router-link>
     </div>
   </div>
@@ -27,33 +28,55 @@
 
 <script>
 import { inject } from 'vue';
+import { auth, provider, signInWithPopup } from '../firebaseConfig';
 
 export default {
   data() {
     return {
       email: '',
       password: '',
-      role: 'mahasiswa',
-      name: 'User Name' // Contoh, Anda bisa menggantinya dengan nama dari database
+      role: 'mahasiswa' // default role
     };
   },
   setup() {
-    const auth = inject('auth');
-    return { auth };
+    const authState = inject('auth'); // Inject auth state
+    return { authState };
   },
   methods: {
     login() {
-      this.auth.isAuthenticated = true;
-      this.auth.role = this.role;
-      this.auth.name = this.name;
-      this.auth.email = this.email;
+      // Set authentication state and role
+      this.authState.isAuthenticated = true;
+      this.authState.role = this.role;
+      this.authState.name = 'User Name'; // Replace with actual user data
+      this.authState.email = this.email;
 
       this.$cookies.set('isAuthenticated', true, '1h');
       this.$cookies.set('role', this.role, '1h');
-      this.$cookies.set('name', this.name, '1h');
-      this.$cookies.set('email', this.email, '1h');
+      this.$cookies.set('name', this.authState.name, '1h');
+      this.$cookies.set('email', this.authState.email, '1h');
 
       this.$router.push('/');
+    },
+    async loginWithGoogle() {
+      try {
+        const result = await signInWithPopup(auth, provider);
+        const user = result.user;
+
+        // Set authentication state and role
+        this.authState.isAuthenticated = true;
+        this.authState.role = 'mahasiswa'; // Default role, you can change this as needed
+        this.authState.name = user.displayName;
+        this.authState.email = user.email;
+
+        this.$cookies.set('isAuthenticated', true, '1h');
+        this.$cookies.set('role', this.authState.role, '1h');
+        this.$cookies.set('name', this.authState.name, '1h');
+        this.$cookies.set('email', this.authState.email, '1h');
+
+        this.$router.push('/');
+      } catch (error) {
+        console.error('Login with Google failed:', error);
+      }
     }
   }
 };

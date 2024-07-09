@@ -1,17 +1,18 @@
 <template>
   <div id="app">
-    <Header :menuItems="menuItems" />
+    <Header v-if="showHeader" :menuItems="menuItems" />
     <main :class="{ 'mobile-content': isMobile }">
       <router-view />
     </main>
-    <FooterComponent />
+    <FooterComponent v-if="showFooter" />
   </div>
 </template>
 
 <script>
 import Header from './components/Header.vue';
 import FooterComponent from './components/Footer.vue';
-import { ref, onMounted, watch, inject } from 'vue';
+import { ref, onMounted, watch, inject, computed } from 'vue';
+import { useRoute } from 'vue-router';
 
 export default {
   components: {
@@ -19,6 +20,7 @@ export default {
     FooterComponent
   },
   setup() {
+    const route = useRoute();
     const auth = inject('auth'); // Inject auth state
     const isMobile = ref(false);
     const menuItems = ref([]);
@@ -52,6 +54,9 @@ export default {
       }
     };
 
+    const showHeader = computed(() => !route.meta.hideHeader);
+    const showFooter = computed(() => !route.meta.hideFooter);
+
     onMounted(() => {
       window.addEventListener('resize', checkWindowSize);
       checkWindowSize();
@@ -62,7 +67,7 @@ export default {
       menuItems.value = getMenuItems(newRole);
     });
 
-    return { isMobile, menuItems };
+    return { isMobile, menuItems, showHeader, showFooter };
   }
 }
 </script>
