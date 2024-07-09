@@ -5,11 +5,19 @@
     <div class="content-wrapper">
       <div class="left-container">
         <div class="container-content">
-          <div class="buttons-container">
-            <button v-if="!tableView" class="filter-button" :class="{'active': selectedSemester === null}" @click="selectSemester(null)">Semua Semester</button>
-            <button v-if="!tableView" class="filter-button" v-for="semester in semesters" :key="semester" :class="{'active': selectedSemester === semester}" @click="selectSemester(semester)">
-              Semester {{ semester }}
-            </button>
+          <div class="header-wrapper">
+            <div class="buttons-container">
+              <button v-if="!tableView" class="filter-button" :class="{'active': selectedSemester === null}" @click="selectSemester(null)">Semua Semester</button>
+              <button v-if="!tableView" class="filter-button" v-for="semester in semesters" :key="semester" :class="{'active': selectedSemester === semester}" @click="selectSemester(semester)">
+                Semester {{ semester }}
+              </button>
+            </div>
+            <div class="view-toggle-wrapper">
+              <div class="view-toggle" @click="toggleView">
+                <img v-if="tableView" src="../../../assets/ic_card.png" alt="Card View" />
+                <img v-else src="../../../assets/ic_table.png" alt="Table View" />
+              </div>
+            </div>
           </div>
           <div v-if="!tableView" class="cards-container">
             <!-- Card View -->
@@ -50,12 +58,6 @@
         </div>
       </div>
       <div class="right-container">
-        <div class="toggle-view-wrapper">
-          <div class="view-toggle" @click="toggleView">
-            <img v-if="tableView" src="../../../assets/ic_card.png" alt="Card View" />
-            <img v-else src="../../../assets/ic_table.png" alt="Table View" />
-          </div>
-        </div>
         <div class="ipk-ips-wrapper">
           <div class="ipk-card">
             <div class="ipk-header">
@@ -84,71 +86,43 @@
       </div>
     </div>
     <div id="print-area">
-      <h2>{{ universityName }}</h2>
-      <p>{{ universityAddress }}</p>
-      <h3>Kartu Hasil Studi (KHS)</h3>
-      <div v-if="selectedSemester === null">
-        <h4>Semua Semester</h4>
+        <h2>{{ universityName }}</h2>
+        <p>{{ universityAddress }}</p>
+        <h3>TRANSKRIP NILAI</h3>
+        <p>Nama : CHOIRUL HUDA</p>
+        <p>NIM : 21450410037</p>
+        <p>Program Studi : Teknologi Informasi</p>
+        <p>Tempat Lahir : Sukoharjo</p>
+        <p>Tanggal Lahir : 2003-07-14</p>
         <table class="table">
           <thead>
             <tr>
+              <th>NO</th>
               <th>Nama Mata Kuliah</th>
-              <th>Kode</th>
               <th>SKS</th>
-              <th>Dosen</th>
-              <th>Semester</th>
               <th>Nilai</th>
             </tr>
           </thead>
           <tbody>
-            <tr v-for="mataKuliah in sortedMataKuliahTable" :key="mataKuliah.kode">
+            <tr v-for="(mataKuliah, index) in mataKuliah" :key="mataKuliah.kode">
+              <td>{{ index + 1 }}</td>
               <td>{{ mataKuliah.nama }}</td>
-              <td>{{ mataKuliah.kode }}</td>
               <td>{{ mataKuliah.sks }}</td>
-              <td>{{ mataKuliah.dosen }}</td>
-              <td>{{ mataKuliah.semester }}</td>
               <td>{{ convertToGrade(mataKuliah.nilai) }}</td>
             </tr>
           </tbody>
         </table>
-      </div>
-      <div v-else>
-        <h4>Semester {{ selectedSemester }}</h4>
-        <table class="table">
-          <thead>
-            <tr>
-              <th>Nama Mata Kuliah</th>
-              <th>Kode</th>
-              <th>SKS</th>
-              <th>Dosen</th>
-              <th>Semester</th>
-              <th>Nilai</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="mataKuliah in filteredMataKuliah" :key="mataKuliah.kode">
-              <td>{{ mataKuliah.nama }}</td>
-              <td>{{ mataKuliah.kode }}</td>
-              <td>{{ mataKuliah.sks }}</td>
-              <td>{{ mataKuliah.dosen }}</td>
-              <td>{{ mataKuliah.semester }}</td>
-              <td>{{ convertToGrade(mataKuliah.nilai) }}</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-      <div class="signature-section">
-        <div class="signature">
-          <p>Dosen Pembimbing</p>
-          <p>(___________________)</p>
-        </div>
-        <div class="signature">
-          <p>Kaprogdi</p>
-          <p>(___________________)</p>
+        <div class="signature-section">
+          <div class="signature">
+            <p>Yogyakarta, 9 Juli 2024</p>
+            <p>Kepala Program Studi</p>
+            <p>Teknologi Informasi</p>
+            <br><br>
+            <p>Sapriani Gustina, S.Kom., M.Kom,</p>
+          </div>
         </div>
       </div>
-    </div>
-    <!-- Modal -->
+          <!-- Modal -->
     <div v-if="showModal" class="modal-overlay" @click="closeModal">
       <div class="modal-content" @click.stop>
         <h3 class="modal-title">Detail Mata Kuliah</h3>
@@ -368,8 +342,7 @@ export default {
   }
 };
 </script>
-
-<style scoped>
+<style>
 .main-wrapper {
   display: flex;
   align-items: flex-start;
@@ -396,15 +369,58 @@ export default {
   gap: 10px;
 }
 
-.view-toggle, .ipk-card, .ips-card {
-  background-color: #f9f9f9;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  padding: 10px;
-  text-align: center;
+.header-wrapper {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  margin-bottom: 10px;
+}
+
+.buttons-container {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  overflow-x: auto;
+  white-space: nowrap;
+  margin-bottom: 20px;
+  padding-right: 0px;
+  padding-left: 0px;
+  height: 40px;
+}
+
+.buttons-container::-webkit-scrollbar {
+  display: none;
+}
+
+.filter-button {
+  border: none;
+  background-color: #cccccc;
+  color: black;
+  padding: 0px 20px;
+  border-radius: 20px;
+  cursor: pointer;
+  margin-right: 10px;
+  flex-shrink: 0;
+}
+
+.filter-button.active {
+  background-color: #007BFF;
+  color: white;
+}
+
+.filter-button:last-child {
+  margin-right: 0;
+}
+
+.view-toggle-wrapper {
+  display: flex;
+  align-items: center;
 }
 
 .view-toggle {
+  background-color: transparent;
+  border: none;
   cursor: pointer;
   width: 40px;
   height: 40px;
@@ -412,51 +428,8 @@ export default {
 
 .view-toggle img {
   width: 100%;
-  height: auto; /* Adjust height automatically */
-  display: block; /* Ensures the image is treated as a block-level element */
-}
-
-.ipk-ips-wrapper {
-  display: flex;
-  gap: 20px;
-  justify-content: space-between;
-  width: 100%;
-}
-
-.ipk-card, .ips-card {
-  flex: 1;
-}
-
-.chart-container {
-  margin-top: 20px;
-  width: 100%;
-}
-
-.print-card {
-  background-color: #ffffff;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  padding: 20px; /* Increased padding */
-  text-align: center;
-  cursor: pointer;
-  width: 100px; /* Fixed width */
-  height: 100px; /* Fixed height */
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-}
-
-.print-card img {
-  margin-top: 10px;
-  width: 40px;
-  height: 40px;
+  height: 100%;
   object-fit: cover;
-}
-
-.print-card p {
-  margin-top: 10px;
-  font-size: 14px;
 }
 
 .container-content {
@@ -471,36 +444,12 @@ export default {
   display: flex;
   flex-direction: column;
   align-items: center;
+  position: relative;
 }
 
 .title {
   text-align: center;
   margin-bottom: 20px;
-}
-
-.buttons-container {
-  display: flex;
-  justify-content: center;
-  width: 100%;
-  margin-bottom: 20px;
-}
-
-.filter-button, .toggle-view-button {
-  border: none;
-  background-color: #cccccc;
-  color: white;
-  padding: 10px 20px;
-  border-radius: 20px;
-  cursor: pointer;
-  margin-right: 10px;
-}
-
-.filter-button:last-child, .toggle-view-button:last-child {
-  margin-right: 0;
-}
-
-.filter-button.active {
-  background-color: #007BFF;
 }
 
 .cards-container {
@@ -518,6 +467,7 @@ export default {
   padding: 10px;
   width: 300px;
   cursor: pointer;
+  position: relative;
 }
 
 .card-header {
@@ -617,4 +567,62 @@ export default {
 .signature {
   text-align: center;
 }
+
+.right-container {
+  width: 20%; /* Kembalikan lebar sesuai kebutuhan */
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.ipk-ips-wrapper {
+  display: flex;
+  gap: 20px;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.ipk-card, .ips-card {
+  flex: 1;
+  background-color: #f9f9f9;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  padding: 10px;
+  text-align: center;
+}
+
+.chart-container {
+  margin-top: 20px;
+  width: 100%;
+}
+
+.print-card {
+  background-color: #ffffff;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  padding: 20px;
+  text-align: center;
+  cursor: pointer;
+  width: 100px;
+  height: 100px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.print-card img {
+  margin-top: 10px;
+  width: 40px;
+  height: 40px;
+  object-fit: cover;
+}
+
+.print-card p {
+  margin-top: 10px;
+  font-size: 14px;
+}
+
+
 </style>

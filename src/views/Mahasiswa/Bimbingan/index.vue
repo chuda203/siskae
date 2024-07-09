@@ -1,21 +1,23 @@
 <template>
   <h1 class="title">Bimbingan</h1>
-  <div class="main-wrapper">
-    <div class="toggle-view-wrapper">
-      <div class="view-toggle" @click="toggleView">
-        <img v-if="tableView" src="../../../assets/ic_card.png" alt="Card View" />
-        <img v-else src="../../../assets/ic_table.png" alt="Table View" />
-      </div>
-    </div>
-    <div class="container">
-      <div class="container-content">
-        <div v-if="!tableView" class="buttons-container">
-          <button class="filter-button" :class="{'active': filter === 'all'}" @click="filter = 'all'">Semua</button>
-          <button class="filter-button" :class="{'active': filter === 'krs'}" @click="filter = 'krs'">KRS</button>
-          <button class="filter-button" :class="{'active': filter === 'kp'}" @click="filter = 'kp'">Kerja Praktik</button>
-          <button class="filter-button" :class="{'active': filter === 'skripsi'}" @click="filter = 'skripsi'">Skripsi</button>
+  <div class="container">
+    <div class="container-content">
+      <div class="main-wrapper">
+        <div class="header-wrapper">
+          <div v-if="!tableView" class="filter-buttons-container">
+            <button class="filter-button" :class="{'active': filter === 'all'}" @click="filter = 'all'">Semua</button>
+            <button class="filter-button" :class="{'active': filter === 'krs'}" @click="filter = 'krs'">KRS</button>
+            <button class="filter-button" :class="{'active': filter === 'kp'}" @click="filter = 'kp'">Kerja Praktik</button>
+            <button class="filter-button" :class="{'active': filter === 'skripsi'}" @click="filter = 'skripsi'">Skripsi</button>
+          </div>
+          <div class="view-toggle-wrapper">
+            <div class="view-toggle" @click="toggleView">
+              <img v-if="tableView" src="../../../assets/ic_card.png" alt="Card View" />
+              <img v-else src="../../../assets/ic_table.png" alt="Table View" />
+            </div>
+          </div>
         </div>
-        <div class="cards-container" v-if="!tableView">
+        <div v-if="!tableView" class="cards-container">
           <div v-for="(item, index) in filteredBimbingan" :key="`bimbingan-${index}`" class="card">
             <div class="card-header">
               <h3>{{ item.topik }}</h3>
@@ -149,22 +151,68 @@ export default {
   font-size: 0.85em;
   color: #666;
 }
+
 .main-wrapper {
-  display: flex;
-  align-items: flex-start;
   width: 100%;
   position: relative;
 }
 
-.toggle-view-wrapper {
-  position: absolute;
-  right: 120px;
-  top: 25px;
+.header-wrapper {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  margin-bottom: 10px; /* Tambahkan margin bawah */
 }
+
+.filter-buttons-container {
+  display: flex;
+  justify-content: center;
+  width: 90%;
+  overflow-x: auto;
+  white-space: nowrap;
+  margin-bottom: 20px;
+  padding-left: 150px; /* Tambahkan padding kiri */
+  padding-right: 10px; /* Tambahkan padding kanan */
+  height: 40px; /* Tambahkan tinggi tetap */
+}
+
+.filter-buttons-container::-webkit-scrollbar {
+  display: none; /* For Chrome, Safari, and Opera */
+}
+
+.filter-button {
+  border: none;
+  background-color: #cccccc;
+  color: black;
+  padding: 0px 20px;
+  border-radius: 20px;
+  cursor: pointer;
+  margin-right: 10px;
+  flex-shrink: 0;
+}
+
+.filter-button.active {
+  background-color: #007BFF;
+  color: white;
+}
+
+.filter-button:last-child {
+  margin-right: 0;
+}
+
+.view-toggle-wrapper {
+  display: flex;
+  align-items: center;
+  margin-left: auto;
+  padding-bottom: 20px;
+  padding-right: 10px; /* Tambahkan padding kanan untuk konsistensi */
+}
+
 
 .container {
   display: flex;
-  justify-content: flex-start;
+  justify-content: center;
   align-items: center;
   flex-wrap: wrap;
   padding: 20px;
@@ -178,7 +226,7 @@ export default {
   border: none;
   cursor: pointer;
   width: 40px;
-  height: 40px
+  height: 40px;
 }
 
 .view-toggle img {
@@ -199,36 +247,12 @@ export default {
   display: flex;
   flex-direction: column;
   align-items: center;
+  position: relative;
 }
 
 .title {
   text-align: center;
   margin-bottom: 20px;
-}
-
-.buttons-container {
-  display: flex;
-  justify-content: center;
-  width: 100%;
-  margin-bottom: 20px;
-}
-
-.filter-button, .toggle-view-button {
-  border: none;
-  background-color: #cccccc;
-  color: white;
-  padding: 10px 20px;
-  border-radius: 20px;
-  cursor: pointer;
-  margin-right: 10px;
-}
-
-.filter-button:last-child, .toggle-view-button:last-child {
-  margin-right: 0;
-}
-
-.filter-button.active {
-  background-color: #007BFF;
 }
 
 .cards-container {
@@ -278,6 +302,7 @@ export default {
   margin: 5px 0;
   background-color: #3498db;
   color: white;
+  border-radius: 20px; /* Rounded corners */
 }
 
 .lihat-slot-button:hover {
@@ -334,6 +359,7 @@ export default {
   border: none;
   padding: 8px 12px;
   cursor: pointer;
+  border-radius: 20px; /* Rounded corners */
 }
 
 .pilih-slot-button:hover {
@@ -383,5 +409,19 @@ export default {
 
 .detail-table td {
   padding: 8px;
+}
+
+/* Hide scrollbar but still allow scrolling */
+body {
+  overflow: hidden; /* Hide the scrollbar */
+}
+
+.container-content::-webkit-scrollbar {
+  display: none; /* For Chrome, Safari, and Opera */
+}
+
+.container-content {
+  -ms-overflow-style: none;  /* For Internet Explorer and Edge */
+  scrollbar-width: none;  /* For Firefox */
 }
 </style>

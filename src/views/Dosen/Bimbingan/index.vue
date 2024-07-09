@@ -1,21 +1,23 @@
 <template>
   <h1 class="title">Bimbingan</h1>
-  <div class="main-wrapper">
-    <div class="toggle-view-wrapper">
-      <div class="view-toggle" @click="toggleView">
-        <img v-if="tableView" src="../../../assets/ic_card.png" alt="Card View" />
-        <img v-else src="../../../assets/ic_table.png" alt="Table View" />
-      </div>
-    </div>
-    <div class="container">
-      <div class="container-content">
-        <div v-if="!tableView" class="buttons-container">
-          <button class="filter-button" :class="{'active': filter === 'all'}" @click="filter = 'all'">Semua</button>
-          <button class="filter-button" :class="{'active': filter === 'krs'}" @click="filter = 'krs'">KRS</button>
-          <button class="filter-button" :class="{'active': filter === 'kp'}" @click="filter = 'kp'">Kerja Praktik</button>
-          <button class="filter-button" :class="{'active': filter === 'skripsi'}" @click="filter = 'skripsi'">Skripsi</button>
+  <div class="container">
+    <div class="container-content">
+      <div class="main-wrapper">
+        <div class="header-wrapper">
+          <div v-if="!tableView" class="filter-buttons-container">
+            <button class="filter-button" :class="{'active': filter === 'all'}" @click="filter = 'all'">Semua</button>
+            <button class="filter-button" :class="{'active': filter === 'krs'}" @click="filter = 'krs'">KRS</button>
+            <button class="filter-button" :class="{'active': filter === 'kp'}" @click="filter = 'kp'">Kerja Praktik</button>
+            <button class="filter-button" :class="{'active': filter === 'skripsi'}" @click="filter = 'skripsi'">Skripsi</button>
+          </div>
+          <div class="view-toggle-wrapper">
+            <div class="view-toggle" @click="toggleView">
+              <img v-if="tableView" src="../../../assets/ic_card.png" alt="Card View" />
+              <img v-else src="../../../assets/ic_table.png" alt="Table View" />
+            </div>
+          </div>
         </div>
-        <div class="cards-container" v-if="!tableView">
+        <div v-if="!tableView" class="cards-container">
           <div v-for="(item, index) in filteredBimbingan" :key="`bimbingan-${index}`" class="card">
             <div class="card-header">
               <h3>{{ item.topik }}</h3>
@@ -65,22 +67,13 @@
     <div v-if="showModalJadwal" class="modal-overlay" @click="closeModal">
       <div class="modal-content" @click.stop>
         <h3 class="modal-title">Ajukan Jadwal Bimbingan</h3>
-        <table class="jadwal-table">
-          <thead>
-            <tr>
-              <th>Tanggal</th>
-              <th>Waktu</th>
-              <th>Ruang</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="(jadwal, index) in selectedStudent.jadwal" :key="`jadwal-${index}`">
-              <td>{{ jadwal.tanggal }}</td>
-              <td>{{ jadwal.waktu }}</td>
-              <td>{{ jadwal.ruang }}</td>
-            </tr>
-          </tbody>
-        </table>
+        <div class="jadwal-cards-container">
+          <div v-for="(jadwal, index) in selectedStudent.jadwal" :key="`jadwal-${index}`" class="jadwal-card">
+            <p><strong>Tanggal:</strong> {{ jadwal.tanggal }}</p>
+            <p><strong>Waktu:</strong> {{ jadwal.waktu }}</p>
+            <p><strong>Ruang:</strong> {{ jadwal.ruang }}</p>
+          </div>
+        </div>
         <form @submit.prevent="submitJadwal">
           <div class="form-group">
             <label for="tanggal">Tanggal</label>
@@ -205,22 +198,75 @@ export default {
 </script>
 
 <style scoped>
+.enrollment-info {
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+  font-size: 0.85em;
+  color: #666;
+}
+
 .main-wrapper {
-  display: flex;
-  align-items: flex-start;
   width: 100%;
   position: relative;
 }
 
-.toggle-view-wrapper {
-  position: absolute;
-  right: 120px;
-  top: 25px;
+.header-wrapper {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  margin-bottom: 10px; /* Tambahkan margin bawah */
 }
+
+.filter-buttons-container {
+  display: flex;
+  justify-content: center;
+  width: 90%;
+  overflow-x: auto;
+  white-space: nowrap;
+  margin-bottom: 20px;
+  padding-left: 150px; /* Tambahkan padding kiri */
+  padding-right: 10px; /* Tambahkan padding kanan */
+  height: 40px; /* Tambahkan tinggi tetap */
+}
+
+.filter-buttons-container::-webkit-scrollbar {
+  display: none; /* For Chrome, Safari, and Opera */
+}
+
+.filter-button {
+  border: none;
+  background-color: #cccccc;
+  color: black;
+  padding: 0px 20px;
+  border-radius: 20px;
+  cursor: pointer;
+  margin-right: 10px;
+  flex-shrink: 0;
+}
+
+.filter-button.active {
+  background-color: #007BFF;
+  color: white;
+}
+
+.filter-button:last-child {
+  margin-right: 0;
+}
+
+.view-toggle-wrapper {
+  display: flex;
+  align-items: center;
+  margin-left: auto;
+  padding-bottom: 20px;
+  padding-right: 10px; /* Tambahkan padding kanan untuk konsistensi */
+}
+
 
 .container {
   display: flex;
-  justify-content: flex-start;
+  justify-content: center;
   align-items: center;
   flex-wrap: wrap;
   padding: 20px;
@@ -234,7 +280,7 @@ export default {
   border: none;
   cursor: pointer;
   width: 40px;
-  height: 40px
+  height: 40px;
 }
 
 .view-toggle img {
@@ -255,36 +301,12 @@ export default {
   display: flex;
   flex-direction: column;
   align-items: center;
+  position: relative;
 }
 
 .title {
   text-align: center;
   margin-bottom: 20px;
-}
-
-.buttons-container {
-  display: flex;
-  justify-content: center;
-  width: 100%;
-  margin-bottom: 20px;
-}
-
-.filter-button {
-  border: none;
-  background-color: #cccccc;
-  color: white;
-  padding: 10px 20px;
-  border-radius: 20px;
-  cursor: pointer;
-  margin-right: 10px;
-}
-
-.filter-button:last-child {
-  margin-right: 0;
-}
-
-.filter-button.active {
-  background-color: #007BFF;
 }
 
 .cards-container {
@@ -303,6 +325,9 @@ export default {
   width: 300px;
   cursor: pointer;
   position: relative; /* Necessary for absolute positioning of children */
+  display: flex;
+  flex-direction: column; /* Tambahkan ini untuk tata letak kolom */
+  text-align: center; /* Pusatkan teks */
 }
 
 .card-header {
@@ -332,34 +357,15 @@ export default {
   border: none;
   cursor: pointer;
   transition: background-color 0.3s;
-  margin: 5px 5px 5px 0;
+  margin: 5px 5px;
   background-color: #3498db;
   color: white;
+  border-radius: 20px; /* Rounded corners */
 }
 
 .ajukan-jadwal-button:hover,
 .ubah-status-button:hover {
   background-color: #2980b9;
-}
-
-.status-buttons {
-  display: flex;
-  justify-content: space-around;
-  margin-bottom: 20px;
-}
-
-.status-buttons button {
-  padding: 10px 20px;
-  border: none;
-  cursor: pointer;
-  transition: background-color 0.3s;
-  background-color: #ddd;
-  color: white;
-  margin: 0 5px; /* Adjust the margin to control the spacing */
-}
-
-.status-buttons button.active {
-  background-color: #007BFF;
 }
 
 .modal-overlay {
@@ -386,28 +392,24 @@ export default {
   text-align: center;
 }
 
-.jadwal-table,
-.slot-table {
-  width: 100%;
-  border-collapse: collapse;
+.jadwal-cards-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
   margin-bottom: 20px;
 }
 
-.jadwal-table th, .jadwal-table td,
-.slot-table th, .slot-table td {
+.jadwal-card {
+  background-color: #f9f9f9;
+  border: 1px solid #ccc;
+  border-radius: 8px;
   padding: 10px;
-  text-align: left;
-  border-bottom: 1px solid #ccc;
+  width: 150px;
 }
 
-.jadwal-table tbody tr:nth-child(even),
-.slot-table tbody tr:nth-child(even) {
-  background-color: #f2f2f2;
-}
-
-.jadwal-table tbody tr:nth-child(odd),
-.slot-table tbody tr:nth-child(odd) {
-  background-color: #ffffff;
+.jadwal-card p {
+  margin: 5px 0;
 }
 
 .form-group {
@@ -434,10 +436,39 @@ export default {
   transition: background-color 0.3s;
   background-color: #007BFF;
   color: white;
+  border-radius: 20px;
+  border: none;
 }
 
 .submit-button:hover {
   background-color: #0056b3;
+  border-radius: 20px;
+  border: none;
+}
+
+.status-buttons {
+  display: flex;
+  justify-content: space-around;
+  margin-bottom: 20px;
+}
+
+.status-buttons button {
+  padding: 10px 20px;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  background-color: #ddd;
+  color: black;
+  margin: 0 5px; /* Adjust the margin to control the spacing */
+  border-radius: 20px;
+  border: none;
+}
+
+.status-buttons button.active {
+  background-color: #007BFF;
+  border-radius: 20px;
+  border: none;
+  color: white;
 }
 
 .table-container {
@@ -483,5 +514,19 @@ export default {
 
 .detail-table td {
   padding: 8px;
+}
+
+/* Hide scrollbar but still allow scrolling */
+body {
+  overflow: hidden; /* Hide the scrollbar */
+}
+
+.container-content::-webkit-scrollbar {
+  display: none; /* For Chrome, Safari, and Opera */
+}
+
+.container-content {
+  -ms-overflow-style: none;  /* For Internet Explorer and Edge */
+  scrollbar-width: none;  /* For Firefox */
 }
 </style>

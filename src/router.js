@@ -44,10 +44,12 @@ const router = createRouter({
 
 // Middleware untuk mengarahkan ke login jika belum login dan memilih komponen yang benar berdasarkan peran
 router.beforeEach((to, from, next) => {
-  const auth = router.options.auth; // Pastikan objek auth ini diinisialisasi dengan benar
+  const auth = router.options.auth;
+  auth.isAuthenticated = $cookies.get('isAuthenticated'); // Update status autentikasi dari cookies
+  auth.role = $cookies.get('role'); // Update peran dari cookies
   console.log('Navigating from:', from.name, 'to:', to.name);
   console.log('User Authenticated:', auth.isAuthenticated, 'User Role:', auth.role);
-  
+
   if (!['login', 'register'].includes(to.name) && !auth.isAuthenticated) {
     console.log('Redirecting to login because user is not authenticated.');
     next({ name: 'login' });
@@ -57,7 +59,6 @@ router.beforeEach((to, from, next) => {
       next();
     } else if (to.meta.role && to.meta.role !== auth.role) {
       console.log('User role does not match the route role, redirecting...');
-      // Redirect ke halaman yang sesuai dengan peran pengguna
       if (auth.role === 'dosen') {
         console.log('Redirecting to Dosen homepage.');
         next({ name: 'beranda_dosen' });

@@ -33,22 +33,27 @@ export default {
     return {
       email: '',
       password: '',
-      role: 'mahasiswa' // default role
+      role: 'mahasiswa',
+      name: 'User Name' // Contoh, Anda bisa menggantinya dengan nama dari database
     };
   },
   setup() {
-    const auth = inject('auth'); // Inject auth state
+    const auth = inject('auth');
     return { auth };
   },
   methods: {
     login() {
-      // Set authentication state and role
       this.auth.isAuthenticated = true;
       this.auth.role = this.role;
-      // Redirect to appropriate home page based on role
+      this.auth.name = this.name;
+      this.auth.email = this.email;
 
-        this.$router.push('/');
+      this.$cookies.set('isAuthenticated', true, '1h');
+      this.$cookies.set('role', this.role, '1h');
+      this.$cookies.set('name', this.name, '1h');
+      this.$cookies.set('email', this.email, '1h');
 
+      this.$router.push('/');
     }
   }
 };

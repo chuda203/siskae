@@ -1,7 +1,8 @@
 import { createApp, reactive } from 'vue';
 import App from './App.vue';
 import router from './router';
-import './style.css';  // Tambahkan import CSS di sini
+import VueCookies from 'vue-cookies';
+import './style.css';
 
 import { library } from '@fortawesome/fontawesome-svg-core';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
@@ -11,16 +12,17 @@ library.add(faHome, faCalendarCheck, faEdit, faPencilAlt, faGraduationCap, faIdC
 
 const app = createApp(App);
 
-// Inisialisasi status autentikasi
 const authState = reactive({
-  isAuthenticated: false,
-  role: 'mahasiswa' // default role
+  isAuthenticated: VueCookies.get('isAuthenticated') || false,
+  role: VueCookies.get('role') || 'mahasiswa',
+  name: VueCookies.get('name') || '',
+  email: VueCookies.get('email') || ''
 });
 
-// Menambahkan authState ke router options
 router.options.auth = authState;
 
-app.provide('auth', authState); // Provide auth state
+app.use(VueCookies);
+app.provide('auth', authState);
 
 app.component('font-awesome-icon', FontAwesomeIcon)
   .use(router)

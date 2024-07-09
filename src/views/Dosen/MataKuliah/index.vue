@@ -1,22 +1,24 @@
 <template>
   <h1 class="title">Mata Kuliah</h1>
-  <div class="main-wrapper">
-    <div class="toggle-view-wrapper">
-      <div class="view-toggle" @click="toggleView">
-        <img v-if="tableView" src="../../../assets/ic_card.png" alt="Card View" />
-        <img v-else src="../../../assets/ic_table.png" alt="Table View" />
-      </div>
-    </div>
-    <div class="container">
-      <div class="container-content">
-        <div class="buttons-container">
-          <button v-if="!tableView" class="filter-button" :class="{'active': selectedHari === 'all'}" @click="selectedHari = 'all'">Semua</button>
-          <button v-if="!tableView" class="filter-button" :class="{'active': selectedHari === 'Senin'}" @click="selectedHari = 'Senin'">Senin</button>
-          <button v-if="!tableView" class="filter-button" :class="{'active': selectedHari === 'Selasa'}" @click="selectedHari = 'Selasa'">Selasa</button>
-          <button v-if="!tableView" class="filter-button" :class="{'active': selectedHari === 'Rabu'}" @click="selectedHari = 'Rabu'">Rabu</button>
-          <button v-if="!tableView" class="filter-button" :class="{'active': selectedHari === 'Kamis'}" @click="selectedHari = 'Kamis'">Kamis</button>
-          <button v-if="!tableView" class="filter-button" :class="{'active': selectedHari === 'Jumat'}" @click="selectedHari = 'Jumat'">Jumat</button>
-          <button v-if="!tableView" class="filter-button" :class="{'active': selectedHari === 'Sabtu'}" @click="selectedHari = 'Sabtu'">Sabtu</button>
+  <div class="container">
+    <div class="container-content">
+      <div class="main-wrapper">
+        <div class="header-wrapper">
+          <div v-if="!tableView" class="filter-buttons-container">
+            <button class="filter-button" :class="{'active': selectedHari === 'all'}" @click="selectedHari = 'all'">Semua</button>
+            <button class="filter-button" :class="{'active': selectedHari === 'Senin'}" @click="selectedHari = 'Senin'">Senin</button>
+            <button class="filter-button" :class="{'active': selectedHari === 'Selasa'}" @click="selectedHari = 'Selasa'">Selasa</button>
+            <button class="filter-button" :class="{'active': selectedHari === 'Rabu'}" @click="selectedHari = 'Rabu'">Rabu</button>
+            <button class="filter-button" :class="{'active': selectedHari === 'Kamis'}" @click="selectedHari = 'Kamis'">Kamis</button>
+            <button class="filter-button" :class="{'active': selectedHari === 'Jumat'}" @click="selectedHari = 'Jumat'">Jumat</button>
+            <button class="filter-button" :class="{'active': selectedHari === 'Sabtu'}" @click="selectedHari = 'Sabtu'">Sabtu</button>
+          </div>
+          <div class="view-toggle-wrapper">
+            <div class="view-toggle" @click="toggleView">
+              <img v-if="tableView" src="../../../assets/ic_card.png" alt="Card View" />
+              <img v-else src="../../../assets/ic_table.png" alt="Table View" />
+            </div>
+          </div>
         </div>
         <div v-if="!tableView" class="cards-container">
           <div v-for="(jadwal, index) in filteredJadwalKuliah" :key="index" class="card">
@@ -37,7 +39,6 @@
           <table class="table">
             <thead>
               <tr>
-                <th>Aksi</th>
                 <th>Hari</th>
                 <th>Waktu</th>
                 <th>Kode Mata Kuliah</th>
@@ -45,14 +46,11 @@
                 <th>Semester</th>
                 <th>Jumlah SKS</th>
                 <th>Ruang Kelas</th>
+                <th>Aksi</th>
               </tr>
             </thead>
             <tbody>
               <tr v-for="(jadwal, index) in filteredJadwalKuliah" :key="index">
-                <td>
-                  <button @click="openBeritaAcaraModal(jadwal)" class="aksi-button">Berita Acara</button>
-                  <button @click="inputNilai(jadwal)" class="aksi-button">Input Nilai</button>
-                </td>
                 <td>{{ jadwal.hari }}</td>
                 <td>{{ jadwal.waktu }}</td>
                 <td>{{ jadwal.kodeMataKuliah }}</td>
@@ -60,6 +58,10 @@
                 <td>{{ jadwal.semester }}</td>
                 <td>{{ jadwal.sks }}</td>
                 <td>{{ jadwal.ruangKelas }}</td>
+                <td>
+                  <button @click="openBeritaAcaraModal(jadwal)" class="aksi-button">Berita Acara</button>
+                  <button @click="inputNilai(jadwal)" class="aksi-button">Input Nilai</button>
+                </td>
               </tr>
             </tbody>
           </table>
@@ -403,27 +405,71 @@ export default {
 </script>
 
 <style scoped>
+/* Tambahkan gaya CSS Anda di sini */
 .main-wrapper {
-  display: flex;
-  align-items: flex-start;
   width: 100%;
   position: relative;
 }
 
-.toggle-view-wrapper {
-  position: absolute;
-  right: 120px;
-  top: 25px;
+.header-wrapper {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  margin-bottom: 10px; /* Tambahkan margin bawah */
+}
+
+.filter-buttons-container {
+  display: flex;
+  justify-content: center;
+  width: 80%;
+  overflow-x: auto;
+  white-space: nowrap;
+  margin-bottom: 20px;
+  padding-left: 300px; /* Tambahkan padding kiri */
+  height: 40px; /* Tambahkan tinggi tetap */
+}
+
+.filter-buttons-container::-webkit-scrollbar {
+  display: none; /* For Chrome, Safari, and Opera */
+}
+
+.filter-button {
+  border: none;
+  background-color: #cccccc;
+  color: black;
+  padding: 0px 20px;
+  border-radius: 20px;
+  cursor: pointer;
+  margin-right: 10px;
+  flex-shrink: 0;
+}
+
+.filter-button.active {
+  background-color: #007BFF;
+  color: white;
+}
+
+.filter-button:last-child {
+  margin-right: 0;
+}
+
+.view-toggle-wrapper {
+  display: flex;
+  align-items: center;
+  margin-left: auto;
+  padding-bottom: 20px;
+  padding-right: 10px; /* Tambahkan padding kanan untuk konsistensi */
 }
 
 .container {
   display: flex;
-  justify-content: flex-start;
+  justify-content: center;
   align-items: center;
   flex-wrap: wrap;
   padding: 20px;
   width: 100%;
-  height: 85vh;
+  height: 80vh;
   overflow: hidden;
 }
 
@@ -453,6 +499,7 @@ export default {
   display: flex;
   flex-direction: column;
   align-items: center;
+  position: relative;
 }
 
 .title {
@@ -460,37 +507,12 @@ export default {
   margin-bottom: 20px;
 }
 
-.buttons-container {
-  display: flex;
-  justify-content: center; /* Center buttons horizontally */
-  width: 100%; /* Ensure the button container spans full width */
-  margin-bottom: 20px;
-}
-
-.filter-button {
-  border: none;
-  background-color: #cccccc; /* Default gray color */
-  color: white;
-  padding: 10px 20px;
-  border-radius: 20px; /* Rounded corners */
-  cursor: pointer;
-  margin-right: 10px;
-}
-
-.filter-button:last-child {
-  margin-right: 0; /* Remove margin for the last button */
-}
-
-.filter-button.active {
-  background-color: #007BFF; /* Blue when active */
-}
-
 .cards-container {
   display: flex;
   flex-wrap: wrap;
   gap: 20px;
-  justify-content: center; /* Center cards within container */
-  width: 100%; /* Ensure it spans the full width of the container */
+  justify-content: center;
+  width: 100%;
 }
 
 .card {
@@ -498,8 +520,12 @@ export default {
   border: 1px solid #ccc;
   border-radius: 8px;
   padding: 10px;
-  width: 300px; /* Fixed width for each card */
+  width: 300px;
   cursor: pointer;
+  position: relative; /* Necessary for absolute positioning of children */
+  display: flex;
+  flex-direction: column; /* Tambahkan ini untuk tata letak kolom */
+  text-align: center; /* Pusatkan teks */
 }
 
 .card-header {
@@ -524,22 +550,18 @@ export default {
 }
 
 .aksi-button {
-  padding: 5px 10px;
-  margin-right: 5px;
+  padding: 10px 20px;
   border: none;
-  border-radius: 5px;
-  background-color: #007bff;
-  color: white;
   cursor: pointer;
+  transition: background-color 0.3s;
+  margin: 5px 10px;
+  background-color: #3498db;
+  color: white;
+  border-radius: 20px; /* Rounded corners */
 }
 
 .aksi-button:hover {
-  background-color: #0056b3;
-}
-
-.plus-button {
-  display: block;
-  margin: 20px auto;
+  background-color: #2980b9;
 }
 
 .modal-overlay {
@@ -566,30 +588,6 @@ export default {
   text-align: center;
 }
 
-.modal-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-}
-
-.form-group {
-  margin-bottom: 20px;
-}
-
-.form-group label {
-  display: block;
-  margin-bottom: 5px;
-}
-
-.form-group textarea,
-.form-group input {
-  width: 100%;
-  padding: 10px;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-}
-
 .submit-button {
   padding: 10px 20px;
   border: none;
@@ -603,20 +601,58 @@ export default {
   background-color: #0056b3;
 }
 
-.berita-acara-table,
-.presensi-table,
-.nilai-table {
+.table-container {
+  width: 100%;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+}
+
+.table th, .table td {
+  padding: 8px;
+  text-align: left;
+  border-bottom: 1px solid #ccc;
+}
+
+.table th {
+  cursor: pointer;
+}
+
+.table tbody tr:nth-child(even) {
+  background-color: #f2f2f2;
+}
+
+.table tbody tr:nth-child(odd) {
+  background-color: #ffffff;
+}
+
+.detail-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.detail-table tr:nth-child(even) {
+  background-color: #f2f2f2;
+}
+
+.detail-table tr:nth-child(odd) {
+  background-color: #ffffff;
+}
+
+.detail-table td {
+  padding: 8px;
+}
+
+.berita-acara-table, .presensi-table, .nilai-table {
   width: 100%;
   border-collapse: collapse;
   margin-bottom: 20px;
 }
 
-.berita-acara-table th,
-.berita-acara-table td,
-.presensi-table th,
-.presensi-table td,
-.nilai-table th,
-.nilai-table td {
+.berita-acara-table th, .berita-acara-table td, .presensi-table th, .presensi-table td, .nilai-table th, .nilai-table td {
   padding: 10px;
   text-align: left;
   border-bottom: 1px solid #ccc;

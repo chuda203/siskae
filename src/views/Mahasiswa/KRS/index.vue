@@ -1,19 +1,21 @@
 <template>
   <h1 class="title">Kartu Rencana Studi (KRS)</h1>
-  <div class="main-wrapper">
-    <div class="toggle-view-wrapper">
-      <div class="view-toggle" @click="toggleView">
-        <img v-if="tableView" src="../../../assets/ic_card.png" alt="Card View" />
-        <img v-else src="../../../assets/ic_table.png" alt="Table View" />
-      </div>
-    </div>
-    <div class="sks-quota">Batas SKS: {{ batasSKS }}</div>
-    <div class="container">
-      <div class="container-content">
-        <div class="buttons-container">
-          <button v-if="!tableView" class="filter-button" :class="{'active': filter === 'all'}" @click="filter = 'all'">Semua</button>
-          <button v-if="!tableView" class="filter-button" :class="{'active': filter === 'not_taken'}" @click="filter = 'not_taken'">Belum di Ambil</button>
-          <button v-if="!tableView" class="filter-button" :class="{'active': filter === 'taken'}" @click="filter = 'taken'">Sudah di Ambil</button>
+  <div class="container">
+    <div class="container-content">
+      <div class="main-wrapper">
+        <div class="header-wrapper">
+          <div class="sks-quota">{{ totalSKS }}/{{ batasSKS }} SKS</div>
+          <div v-if="!tableView" class="filter-buttons-container">
+            <button class="filter-button" :class="{'active': filter === 'all'}" @click="filter = 'all'">Semua</button>
+            <button class="filter-button" :class="{'active': filter === 'not_taken'}" @click="filter = 'not_taken'">Belum di Ambil</button>
+            <button class="filter-button" :class="{'active': filter === 'taken'}" @click="filter = 'taken'">Sudah di Ambil</button>
+          </div>
+          <div class="view-toggle-wrapper">
+            <div class="view-toggle" @click="toggleView">
+              <img v-if="tableView" src="../../../assets/ic_card.png" alt="Card View" />
+              <img v-else src="../../../assets/ic_table.png" alt="Table View" />
+            </div>
+          </div>
         </div>
         <div v-if="!tableView" class="cards-container">
           <div v-for="(mataKuliah, index) in filteredMataKuliah" :key="`mataKuliah-${index}`" class="card" @click="openDetail(mataKuliah)">
@@ -35,12 +37,12 @@
           <table class="table">
             <thead>
               <tr>
-                <th @click="sortTable('nama')">Nama Mata Kuliah</th>
-                <th @click="sortTable('kode')">Kode</th>
-                <th @click="sortTable('sks')">SKS</th>
-                <th @click="sortTable('namaDosen')">Dosen</th>
-                <th @click="sortTable('semester')">Semester</th>
-                <th @click="sortTable('ruangKelas')">Ruang Kelas</th>
+                <th>Nama Mata Kuliah</th>
+                <th>Kode</th>
+                <th>SKS</th>
+                <th>Dosen</th>
+                <th>Semester</th>
+                <th>Ruang Kelas</th>
                 <th>Status</th>
                 <th>Terisi</th>
                 <th>Kapasitas</th>
@@ -67,6 +69,7 @@
         </div>
       </div>
     </div>
+
     <!-- Modal -->
     <div v-if="showModal" class="modal-overlay" @click="closeModal">
       <div class="modal-content" @click.stop>
@@ -92,8 +95,6 @@ export default {
     return {
       filter: 'all',
       tableView: false,
-      sortBy: null,
-      sortOrder: 'asc',
       showModal: false,
       selectedMataKuliah: {},
       batasSKS: 20,
@@ -103,16 +104,11 @@ export default {
         { kode: 'IF102', nama: 'Struktur Data', sks: 3, diambil: true, namaDosen: 'Dr. Jane Smith', semester: 2, ruangKelas: 'B201', terisi: 25, kapasitas: 30 },
         { kode: 'IF201', nama: 'Algoritma dan Pemrograman', sks: 4, diambil: true, namaDosen: 'Prof. Alice Brown', semester: 3, ruangKelas: 'C301', terisi: 20, kapasitas: 25 },
         { kode: 'IF202', nama: 'Basis Data', sks: 4, diambil: false, namaDosen: 'Prof. Bob White', semester: 4, ruangKelas: 'D401', terisi: 18, kapasitas: 20 },
-        { kode: 'IF203', nama: 'Pemrograman Lanjut', sks: 3, diambil: false, namaDosen: 'Dr. Chris Black', semester: 5, ruangKelas: 'E501', terisi: 15, kapasitas: 15 },
-
-        { kode: 'IF203', nama: 'Pemrograman Lanjut', sks: 2, diambil: false, namaDosen: 'Dr. Chris Black', semester: 5, ruangKelas: 'E501', terisi: 5, kapasitas: 15 },
         { kode: 'IF203', nama: 'Pemrograman Lanjut', sks: 3, diambil: false, namaDosen: 'Dr. Chris Black', semester: 5, ruangKelas: 'E501', terisi: 5, kapasitas: 15 },
-        { kode: 'IF203', nama: 'Pemrograman Lanjut', sks: 5, diambil: false, namaDosen: 'Dr. Chris Black', semester: 5, ruangKelas: 'E501', terisi: 5, kapasitas: 15 },
-        { kode: 'IF203', nama: 'Pemrograman Lanjut', sks: 3, diambil: false, namaDosen: 'Dr. Chris Black', semester: 5, ruangKelas: 'E501', terisi: 5, kapasitas: 15 },
-        { kode: 'IF203', nama: 'Pemrograman Lanjut', sks: 4, diambil: false, namaDosen: 'Dr. Chris Black', semester: 5, ruangKelas: 'E501', terisi: 15, kapasitas: 15 },
-        { kode: 'IF203', nama: 'Pemrograman Lanjut', sks: 2, diambil: false, namaDosen: 'Dr. Chris Black', semester: 5, ruangKelas: 'E501', terisi: 15, kapasitas: 15 },
-        { kode: 'IF203', nama: 'Pemrograman Lanjut', sks: 3, diambil: false, namaDosen: 'Dr. Chris Black', semester: 5, ruangKelas: 'E501', terisi: 15, kapasitas: 15 },
-        // More courses...
+        { kode: 'IF204', nama: 'Basis Teknologi', sks: 3, diambil: false, namaDosen: 'Dr. Chris Black', semester: 5, ruangKelas: 'E501', terisi: 5, kapasitas: 15 },
+        { kode: 'IF205', nama: 'Desain Produk', sks: 3, diambil: false, namaDosen: 'Dr. Chris Black', semester: 5, ruangKelas: 'E501', terisi: 5, kapasitas: 15 },
+        { kode: 'IF206', nama: 'Cloud Computing', sks: 3, diambil: false, namaDosen: 'Dr. Chris Black', semester: 5, ruangKelas: 'E501', terisi: 5, kapasitas: 15 },
+        { kode: 'IF207', nama: 'Pemrograman Lanjutan', sks: 3, diambil: false, namaDosen: 'Dr. Chris Black', semester: 5, ruangKelas: 'E501', terisi: 5, kapasitas: 15 },
       ]
     };
   },
@@ -125,19 +121,8 @@ export default {
         return filterCondition;
       });
     },
-    sortedMataKuliah() {
-      return this.filteredMataKuliah.sort((a, b) => {
-        if (!this.sortBy) return 0;
-        if (a[this.sortBy] === b[this.sortBy]) return 0;
-        if (this.sortOrder === 'asc') {
-          return a[this.sortBy] > b[this.sortBy] ? 1 : -1;
-        } else {
-          return a[this.sortBy] < b[this.sortBy] ? 1 : -1;
-        }
-      });
-    },
     sortedMataKuliahTable() {
-      return this.mataKuliahTersedia.sort((a, b) => {
+      return this.filteredMataKuliah.sort((a, b) => {
         if (!this.sortBy) return 0;
         if (a[this.sortBy] === b[this.sortBy]) return 0;
         if (this.sortOrder === 'asc') {
@@ -191,17 +176,30 @@ export default {
     closeModal() {
       this.showModal = false;
     }
+  },
+  watch: {
+    mataKuliahTersedia: {
+      handler() {
+        this.totalSKS = this.mataKuliahTersedia.reduce((sum, mataKuliah) => {
+          return sum + (mataKuliah.diambil ? mataKuliah.sks : 0);
+        }, 0);
+      },
+      deep: true,
+      immediate: true
+    }
   }
 };
 </script>
 
 <style scoped>
 .sks-quota {
-  position: absolute;
-  top: 25px;
-  right: 220px;
   font-size: 1em;
   color: #333;
+  border-radius: 5px; /* Rounded corners */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Subtle shadow for emphasis */
+  background: white;
+  padding: 10px;
+  margin-bottom: 20px;
 }
 
 .enrollment-info {
@@ -213,27 +211,72 @@ export default {
 }
 
 .main-wrapper {
-  display: flex;
-  align-items: flex-start;
   width: 100%;
   position: relative;
 }
 
-.toggle-view-wrapper {
-  position: absolute;
-  right: 120px;
-  top: 25px;
+.header-wrapper {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  margin-bottom: 10px;
+}
+
+.filter-buttons-container {
+  display: flex;
+  justify-content: center;
+  width: 80%;
+  overflow-x: auto;
+  white-space: nowrap;
+  margin-bottom: 20px;
+  padding-right: 0px;
+  padding-left: 140px;
+  height: 40px;
+}
+
+.filter-buttons-container::-webkit-scrollbar {
+  display: none;
+}
+
+.filter-button {
+  border: none;
+  background-color: #cccccc;
+  color: black;
+  padding: 0px 20px;
+  border-radius: 20px;
+  cursor: pointer;
+  margin-right: 10px;
+  flex-shrink: 0;
+}
+
+.filter-button.active {
+  background-color: #007BFF;
+  color: white;
+}
+
+.filter-button:last-child {
+  margin-right: 0;
+}
+
+.view-toggle-wrapper {
+  display: flex;
+  align-items: center;
+  margin-left: auto;
+  padding-bottom: 20px;
+  padding-right: 10px;
 }
 
 .container {
   display: flex;
-  justify-content: flex-start;
+  justify-content: center;
   align-items: center;
   flex-wrap: wrap;
   padding: 20px;
   width: 100%;
-  height: 85vh;
+  height: 80vh;
   overflow: hidden;
+  position: relative; /* Ensure absolute positioning works */
 }
 
 .view-toggle {
@@ -262,36 +305,12 @@ export default {
   display: flex;
   flex-direction: column;
   align-items: center;
+  position: relative;
 }
 
 .title {
   text-align: center;
   margin-bottom: 20px;
-}
-
-.buttons-container {
-  display: flex;
-  justify-content: center;
-  width: 100%;
-  margin-bottom: 20px;
-}
-
-.filter-button, .toggle-view-button {
-  border: none;
-  background-color: #cccccc;
-  color: white;
-  padding: 10px 20px;
-  border-radius: 20px;
-  cursor: pointer;
-  margin-right: 10px;
-}
-
-.filter-button:last-child, .toggle-view-button:last-child {
-  margin-right: 0;
-}
-
-.filter-button.active {
-  background-color: #007BFF;
 }
 
 .cards-container {
@@ -309,7 +328,7 @@ export default {
   padding: 10px;
   width: 300px;
   cursor: pointer;
-  position: relative; /* Necessary for absolute positioning of children */
+  position: relative;
 }
 
 .card-header {
@@ -341,6 +360,7 @@ export default {
   cursor: pointer;
   transition: background-color 0.3s;
   margin: 5px 0;
+  border-radius: 20px;
 }
 
 .ambil-button {
@@ -384,7 +404,7 @@ export default {
   padding: 20px;
   border-radius: 8px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  width: 400px;
+  width: 600px;
 }
 
 .modal-title {
@@ -434,5 +454,19 @@ export default {
 
 .detail-table td {
   padding: 8px;
+}
+
+/* Hide scrollbar but still allow scrolling */
+body {
+  overflow: hidden;
+}
+
+.container-content::-webkit-scrollbar {
+  display: none;
+}
+
+.container-content {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
 </style>
