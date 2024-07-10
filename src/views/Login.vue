@@ -20,7 +20,6 @@
         </div>
         <button type="submit">Login</button>
       </form>
-      <button @click="loginWithGoogle">Login with Google</button>
       <router-link to="/register">Register</router-link>
     </div>
   </div>
@@ -28,7 +27,7 @@
 
 <script>
 import { inject } from 'vue';
-import { auth, provider, signInWithPopup } from '../firebaseConfig';
+import axios from 'axios';
 
 export default {
   data() {
@@ -43,39 +42,54 @@ export default {
     return { authState };
   },
   methods: {
-    login() {
-      // Set authentication state and role
-      this.authState.isAuthenticated = true;
-      this.authState.role = this.role;
-      this.authState.name = 'User Name'; // Replace with actual user data
-      this.authState.email = this.email;
-
-      this.$cookies.set('isAuthenticated', true, '1h');
-      this.$cookies.set('role', this.role, '1h');
-      this.$cookies.set('name', this.authState.name, '1h');
-      this.$cookies.set('email', this.authState.email, '1h');
-
-      this.$router.push('/');
-    },
-    async loginWithGoogle() {
+    async login() {
       try {
-        const result = await signInWithPopup(auth, provider);
-        const user = result.user;
+        const response = await axios.post('http://localhost:3000/login', {
+          email: this.email,
+          password: this.password,
+          role: this.role
+        });
 
-        // Set authentication state and role
-        this.authState.isAuthenticated = true;
-        this.authState.role = 'mahasiswa'; // Default role, you can change this as needed
-        this.authState.name = user.displayName;
-        this.authState.email = user.email;
+        console.log("Login response:", response.data); // Log respons login
 
-        this.$cookies.set('isAuthenticated', true, '1h');
-        this.$cookies.set('role', this.authState.role, '1h');
-        this.$cookies.set('name', this.authState.name, '1h');
-        this.$cookies.set('email', this.authState.email, '1h');
+        if (response.data.success) {
+          // Set authentication state and role
+          this.authState.isAuthenticated = true;
+          this.authState.role = response.data.user.role;
+          this.authState.name = response.data.user.name; // Ambil nama dari response.user
+          this.authState.email = response.data.user.email;
+          this.authState.user_id = response.data.user.user_id; // Ambil user_id dari response.user
 
-        this.$router.push('/');
+          // Jika role adalah mahasiswa, simpan informasi tambahan
+          if (response.data.user.role === 'mahasiswa') {
+            this.authState.department = response.data.user.department;
+            this.authState.lecturer_id = response.data.user.lecturer_id;
+            this.authState.current_semester = response.data.user.current_semester;
+            this.authState.credit_quota = response.data.user.credit_quota;
+
+            // Set cookies untuk informasi tambahan
+            this.$cookies.set('department', this.authState.department, '1h');
+            this.$cookies.set('lecturer_id', this.authState.lecturer_id, '1h');
+            this.$cookies.set('current_semester', this.authState.current_semester, '1h');
+            this.$cookies.set('credit_quota', this.authState.credit_quota, '1h');
+          }
+
+          console.log("Auth state after login:", this.authState); // Log auth state
+
+          // Set cookies
+          this.$cookies.set('isAuthenticated', true, '1h');
+          this.$cookies.set('role', this.authState.role, '1h');
+          this.$cookies.set('name', this.authState.name, '1h');
+          this.$cookies.set('email', this.authState.email, '1h');
+          this.$cookies.set('user_id', this.authState.user_id, '1h'); // Simpan user_id di cookies
+
+          // Redirect to home page
+          this.$router.push('/saran');
+        } else {
+          console.error('Login failed:', response.data.message);
+        }
       } catch (error) {
-        console.error('Login with Google failed:', error);
+        console.error('Login error:', error);
       }
     }
   }

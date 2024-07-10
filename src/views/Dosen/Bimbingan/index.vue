@@ -20,16 +20,23 @@
         <div v-if="!tableView" class="cards-container">
           <div v-for="(item, index) in filteredBimbingan" :key="`bimbingan-${index}`" class="card">
             <div class="card-header">
-              <h3>{{ item.topik }}</h3>
+              <h3>{{ item.topic }}</h3>
               <div class="divider"></div>
             </div>
             <div class="card-body">
-              <p>{{ item.namaMahasiswa }}</p>
-              <p>{{ item.nim }}</p>
-              <p>{{ item.judul }}</p>
+              <p>{{ item.nama_mahasiswa }}</p>
+              <p>{{ item.NIM }}</p>
+              <p>{{ item.title }}</p>
               <p>{{ item.status }}</p>
               <button @click="ajukanJadwal(item)" class="ajukan-jadwal-button">Ajukan Jadwal</button>
               <button @click="ubahStatus(item)" class="ubah-status-button">Ubah Status</button>
+              <div v-if="item.slotBimbingan && item.slotBimbingan.length">
+                <h4>Slot Bimbingan:</h4>
+                <div v-for="(slot, idx) in item.slotBimbingan" :key="`slot-${idx}`" class="slot-card">
+                  <p>{{ slot.date }} - {{ slot.start_time }} - {{ slot.end_time }} - {{ slot.room }}</p>
+                  <button @click="hapusJadwal(slot.slot_id)" class="hapus-jadwal-button">Hapus Jadwal</button>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -47,10 +54,10 @@
             </thead>
             <tbody>
               <tr v-for="(item, index) in filteredBimbingan" :key="`table-${index}`">
-                <td>{{ item.topik }}</td>
-                <td>{{ item.namaMahasiswa }}</td>
-                <td>{{ item.nim }}</td>
-                <td>{{ item.judul }}</td>
+                <td>{{ item.topic }}</td>
+                <td>{{ item.nama_mahasiswa }}</td>
+                <td>{{ item.NIM }}</td>
+                <td>{{ item.title }}</td>
                 <td>{{ item.status }}</td>
                 <td>
                   <button @click="ajukanJadwal(item)" class="ajukan-jadwal-button">Ajukan Jadwal</button>
@@ -68,10 +75,11 @@
       <div class="modal-content" @click.stop>
         <h3 class="modal-title">Ajukan Jadwal Bimbingan</h3>
         <div class="jadwal-cards-container">
-          <div v-for="(jadwal, index) in selectedStudent.jadwal" :key="`jadwal-${index}`" class="jadwal-card">
-            <p><strong>Tanggal:</strong> {{ jadwal.tanggal }}</p>
-            <p><strong>Waktu:</strong> {{ jadwal.waktu }}</p>
-            <p><strong>Ruang:</strong> {{ jadwal.ruang }}</p>
+          <div v-for="(jadwal, index) in slotBimbingan" :key="`slot-${index}`" class="jadwal-card">
+            <p><strong>Tanggal:</strong> {{ jadwal.date }}</p>
+            <p><strong>Waktu:</strong> {{ jadwal.start_time }} - {{ jadwal.end_time }}</p>
+            <p><strong>Ruang:</strong> {{ jadwal.room }}</p>
+            <button @click="hapusJadwal(jadwal.slot_id)" class="hapus-jadwal-button">Hapus Jadwal</button>
           </div>
         </div>
         <form @submit.prevent="submitJadwal">
@@ -108,6 +116,9 @@
 </template>
 
 <script>
+import axios from 'axios';
+import { inject } from 'vue';
+
 export default {
   data() {
     return {
@@ -124,18 +135,8 @@ export default {
         status: ''
       },
       selectedStudent: null,
-      bimbinganList: [
-        { topik: 'KRS', namaMahasiswa: 'John Doe', nim: '123456789', status: 'Belum Bimbingan', judul: 'Semester 1', type: 'krs', jadwal: [] },
-        { topik: 'Kerja Praktik', namaMahasiswa: 'Jane Smith', nim: '987654321', status: 'ACC', judul: 'Analisis Sistem Informasi', type: 'kp', jadwal: [] },
-        { topik: 'Skripsi', namaMahasiswa: 'Alice Brown', nim: '456789123', status: 'Proses Bimbingan', judul: 'Pengembangan Aplikasi Mobile', type: 'skripsi', jadwal: [] },
-        { topik: 'KRS', namaMahasiswa: 'Chris Black', nim: '654321987', status: 'Belum Bimbingan', judul: 'Semester 2', type: 'krs', jadwal: [] },
-        { topik: 'Kerja Praktik', namaMahasiswa: 'Sarah White', nim: '321987654', status: 'ACC', judul: 'Pengembangan Sistem E-Commerce', type: 'kp', jadwal: [] },
-        { topik: 'Skripsi', namaMahasiswa: 'Michael Green', nim: '789123456', status: 'Proses Bimbingan', judul: 'Analisis Data Big Data', type: 'skripsi', jadwal: [] },
-        { topik: 'KRS', namaMahasiswa: 'Anna Red', nim: '987123456', status: 'ACC', judul: 'Semester 3', type: 'krs', jadwal: [] },
-        { topik: 'Kerja Praktik', namaMahasiswa: 'Paul Yellow', nim: '123987456', status: 'ACC', judul: 'Desain User Interface', type: 'kp', jadwal: [] },
-        { topik: 'Skripsi', namaMahasiswa: 'Robert Blue', nim: '654789123', status: 'Belum Bimbingan', judul: 'Keamanan Jaringan', type: 'skripsi', jadwal: [] },
-        // Tambah data bimbingan lainnya
-      ],
+      bimbinganList: [], // Empty initially
+      slotBimbingan: [] // Array to store slot bimbingan
     };
   },
   computed: {
@@ -146,6 +147,59 @@ export default {
     }
   },
   methods: {
+    async fetchBimbinganList() {
+      const dosenId = this.auth.user_id; // Assume the auth state contains the user ID of the logged-in dosen
+      try {
+        const response = await axios.get(`http://localhost:3000/guidances/${dosenId}`);
+        if (response.data.success) {
+          this.bimbinganList = response.data.data.map(item => ({
+            ...item,
+            type: this.mapTopicToType(item.topic) // Map topic to type for filtering
+          }));
+          // Fetch slots for each guidance
+          for (let bimbingan of this.bimbinganList) {
+            try {
+              const slotResponse = await axios.get(`http://localhost:3000/guidanceslots/${dosenId}/${bimbingan.guidance_id}`);
+              if (slotResponse.data.success) {
+                bimbingan.slotBimbingan = slotResponse.data.data;
+              }
+            } catch (error) {
+              console.error(`Error fetching slot bimbingan for guidance_id ${bimbingan.guidance_id}:`, error);
+              bimbingan.slotBimbingan = []; // Set to empty array if error
+            }
+          }
+        } else {
+          console.error('Failed to fetch bimbingan list:', response.data.message);
+        }
+      } catch (error) {
+        console.error('Error fetching bimbingan list:', error);
+      }
+    },
+    async fetchSlotBimbingan(guidanceId) {
+      const dosenId = this.auth.user_id;
+      try {
+        const response = await axios.get(`http://localhost:3000/guidanceslots/${dosenId}/${guidanceId}`);
+        if (response.data.success) {
+          this.slotBimbingan = response.data.data;
+        } else {
+          console.error('Failed to fetch slot bimbingan:', response.data.message);
+        }
+      } catch (error) {
+        if (error.response && error.response.status === 404) {
+          console.error(`Guidance slot not found for dosen_id ${dosenId} and guidance_id ${guidanceId}`);
+        } else {
+          console.error('Error fetching slot bimbingan:', error);
+        }
+      }
+    },
+    mapTopicToType(topic) {
+      switch(topic.toLowerCase()) {
+        case 'krs': return 'krs';
+        case 'kerja praktik': return 'kp';
+        case 'skripsi': return 'skripsi';
+        default: return 'all';
+      }
+    },
     toggleView() {
       this.tableView = !this.tableView;
       if (this.tableView) {
@@ -160,26 +214,69 @@ export default {
     setStatus(status) {
       this.formStatus.status = status;
     },
-    submitStatus() {
-      this.selectedStudent.status = this.formStatus.status;
-      this.closeModal();
+    async submitStatus() {
+      try {
+        const response = await axios.put(`http://localhost:3000/guidances/${this.selectedStudent.guidance_id}/status`, {
+          status: this.formStatus.status
+        });
+        if (response.data.success) {
+          this.selectedStudent.status = this.formStatus.status;
+          this.closeModal();
+        } else {
+          console.error('Failed to update status:', response.data.message);
+        }
+      } catch (error) {
+        console.error('Error updating status:', error);
+      }
     },
-    ajukanJadwal(item) {
+    async ajukanJadwal(item) {
       this.selectedStudent = item;
+      await this.fetchSlotBimbingan(item.guidance_id);
       this.showModalJadwal = true;
     },
-    submitJadwal() {
-      this.selectedStudent.jadwal.push({
-        tanggal: this.formJadwal.tanggal,
-        waktu: this.formJadwal.waktu,
-        ruang: this.formJadwal.ruang
-      });
-      console.log(`Jadwal diajukan untuk ${this.selectedStudent.namaMahasiswa}: Tanggal: ${this.formJadwal.tanggal}, Waktu: ${this.formJadwal.waktu}, Ruang: ${this.formJadwal.ruang}`);
-      this.formJadwal = {
-        tanggal: '',
-        waktu: '',
-        ruang: ''
-      };
+    async submitJadwal() {
+      const { tanggal, waktu, ruang } = this.formJadwal;
+      const { guidance_id } = this.selectedStudent;
+      
+      try {
+        const response = await axios.post('http://localhost:3000/guidanceslots', {
+          guidance_id,
+          date: tanggal,
+          start_time: waktu,
+          end_time: waktu, // Assuming end_time is same as start_time for now
+          room: ruang
+        });
+
+        if (response.data.success) {
+          console.log('Slot bimbingan berhasil ditambahkan:', response.data.message);
+          // Refresh the slots for the selected guidance
+          await this.fetchSlotBimbingan(guidance_id);
+          this.closeModal();
+        } else {
+          console.error('Failed to add slot bimbingan:', response.data.message);
+        }
+      } catch (error) {
+        console.error('Error adding slot bimbingan:', error);
+      }
+    },
+    async hapusJadwal(slotId) {
+      console.log('Attempting to delete slot with ID:', slotId);
+      if (!slotId) {
+        console.error('Invalid slot ID:', slotId);
+        return;
+      }
+      try {
+        const response = await axios.delete(`http://localhost:3000/guidanceslots/${slotId}`);
+        if (response.data.success) {
+          console.log('Slot bimbingan berhasil dihapus:', response.data.message);
+          // Refresh the slots for the selected guidance
+          await this.fetchSlotBimbingan(this.selectedStudent.guidance_id);
+        } else {
+          console.error('Failed to delete slot bimbingan:', response.data.message);
+        }
+      } catch (error) {
+        console.error('Error deleting slot bimbingan:', error);
+      }
     },
     closeModal() {
       this.showModalJadwal = false;
@@ -193,6 +290,10 @@ export default {
         status: ''
       };
     }
+  },
+  async mounted() {
+    this.auth = inject('auth'); // Inject auth state
+    await this.fetchBimbinganList(); // Fetch the list of bimbingan on mount
   }
 };
 </script>
@@ -444,6 +545,21 @@ export default {
   background-color: #0056b3;
   border-radius: 20px;
   border: none;
+}
+
+.hapus-jadwal-button {
+  padding: 10px 20px;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  background-color: #e74c3c;
+  color: white;
+  border-radius: 20px; /* Rounded corners */
+  margin-top: 10px; /* Margin at the top to separate from other content */
+}
+
+.hapus-jadwal-button:hover {
+  background-color: #c0392b;
 }
 
 .status-buttons {

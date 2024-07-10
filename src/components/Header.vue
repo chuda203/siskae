@@ -19,6 +19,7 @@
           <p><strong>Nama:</strong> {{ auth.name }}</p>
           <p><strong>Email:</strong> {{ auth.email }}</p>
           <p><strong>Role:</strong> {{ auth.role }}</p>
+          <p><strong>User ID:</strong> {{ auth.user_id }}</p> <!-- Tambahkan ini jika Anda ingin menampilkan user_id -->
           <button @click="logout">Logout</button>
         </div>
       </div>
@@ -51,10 +52,12 @@ export default {
       auth.role = '';
       auth.name = '';
       auth.email = '';
+      auth.user_id = '';
       $cookies.remove('isAuthenticated');
       $cookies.remove('role');
       $cookies.remove('name');
       $cookies.remove('email');
+      $cookies.remove('user_id');
       window.location.href = '/login'; // Redirect ke halaman login
     };
 

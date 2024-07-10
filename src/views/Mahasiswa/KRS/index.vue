@@ -90,6 +90,9 @@
 </template>
 
 <script>
+import VueCookies from 'vue-cookies';
+import axios from 'axios';
+
 export default {
   data() {
     return {
@@ -97,19 +100,9 @@ export default {
       tableView: false,
       showModal: false,
       selectedMataKuliah: {},
-      batasSKS: 20,
+      batasSKS: VueCookies.get('credit_quota') || 20, // Dapatkan batas SKS dari cookies
       totalSKS: 0,
-      mataKuliahTersedia: [
-        { kode: 'IF101', nama: 'Pemrograman Dasar', sks: 3, diambil: false, namaDosen: 'Dr. John Doe', semester: 1, ruangKelas: 'A101', terisi: 10, kapasitas: 30 },
-        { kode: 'IF102', nama: 'Struktur Data', sks: 3, diambil: true, namaDosen: 'Dr. Jane Smith', semester: 2, ruangKelas: 'B201', terisi: 25, kapasitas: 30 },
-        { kode: 'IF201', nama: 'Algoritma dan Pemrograman', sks: 4, diambil: true, namaDosen: 'Prof. Alice Brown', semester: 3, ruangKelas: 'C301', terisi: 20, kapasitas: 25 },
-        { kode: 'IF202', nama: 'Basis Data', sks: 4, diambil: false, namaDosen: 'Prof. Bob White', semester: 4, ruangKelas: 'D401', terisi: 18, kapasitas: 20 },
-        { kode: 'IF203', nama: 'Pemrograman Lanjut', sks: 3, diambil: false, namaDosen: 'Dr. Chris Black', semester: 5, ruangKelas: 'E501', terisi: 5, kapasitas: 15 },
-        { kode: 'IF204', nama: 'Basis Teknologi', sks: 3, diambil: false, namaDosen: 'Dr. Chris Black', semester: 5, ruangKelas: 'E501', terisi: 5, kapasitas: 15 },
-        { kode: 'IF205', nama: 'Desain Produk', sks: 3, diambil: false, namaDosen: 'Dr. Chris Black', semester: 5, ruangKelas: 'E501', terisi: 5, kapasitas: 15 },
-        { kode: 'IF206', nama: 'Cloud Computing', sks: 3, diambil: false, namaDosen: 'Dr. Chris Black', semester: 5, ruangKelas: 'E501', terisi: 5, kapasitas: 15 },
-        { kode: 'IF207', nama: 'Pemrograman Lanjutan', sks: 3, diambil: false, namaDosen: 'Dr. Chris Black', semester: 5, ruangKelas: 'E501', terisi: 5, kapasitas: 15 },
-      ]
+      mataKuliahTersedia: []
     };
   },
   computed: {
@@ -149,25 +142,97 @@ export default {
       }
     },
     canTakeCourse(mataKuliah) {
-      return this.totalSKS + mataKuliah.sks <= this.batasSKS;
+      const canTake = this.totalSKS + mataKuliah.sks <= this.batasSKS;
+      console.log(`Checking if course can be taken: ${canTake}`, {
+        totalSKS: this.totalSKS,
+        mataKuliahSKS: mataKuliah.sks,
+        batasSKS: this.batasSKS
+      });
+      return canTake;
     },
-    ambilKRS(mataKuliah, event) {
+    async ambilKRS(mataKuliah, event) {
       event.stopPropagation(); // Prevent triggering other click events
-      if (!mataKuliah.diambil && this.canTakeCourse(mataKuliah) && mataKuliah.terisi < mataKuliah.kapasitas) {
-        mataKuliah.diambil = true;
-        mataKuliah.terisi++;
-        this.totalSKS += mataKuliah.sks;
+      const userId = VueCookies.get('user_id');
+      const lecturerId = VueCookies.get('lecturer_id');
+      const currentSemester = VueCookies.get('current_semester');
+
+      console.log('Attempting to take course:', {
+        userId,
+        lecturerId,
+        currentSemester,
+        course: mataKuliah
+      });
+
+      // Ensure default values for terisi and kapasitas if they are not set
+      mataKuliah.terisi = mataKuliah.terisi || 0;
+      mataKuliah.kapasitas = mataKuliah.kapasitas || Infinity;
+
+      if (!mataKuliah.diambil) {
+        if (this.canTakeCourse(mataKuliah)) {
+          if (mataKuliah.terisi < mataKuliah.kapasitas) {
+            try {
+              console.log('Sending request to add CourseRequest:', {
+                user_id: userId,
+                course_id: mataKuliah.course_id,
+                lecturer_id: lecturerId,
+                current_semester: currentSemester,
+                status: 'Pending'
+              });
+              const response = await axios.post('http://localhost:3000/courserequests', {
+                user_id: userId,
+                course_id: mataKuliah.course_id,
+                lecturer_id: lecturerId,
+                current_semester: currentSemester,
+                status: 'Pending'
+              });
+              console.log('CourseRequest added:', response.data);
+              if (response.data.success) {
+                mataKuliah.diambil = true;
+                mataKuliah.terisi++;
+                this.totalSKS += mataKuliah.sks;
+                this.$forceUpdate(); // To ensure reactivity
+              } else {
+                console.error('Failed to add CourseRequest:', response.data.message);
+              }
+            } catch (error) {
+              console.error('Error adding CourseRequest:', error);
+            }
+          } else {
+            console.warn('Cannot take course due to capacity being full.');
+          }
+        } else {
+          console.warn('Cannot take course due to SKS limit.');
+        }
+      } else {
+        console.warn('Course already taken.');
       }
-      this.$forceUpdate(); // To ensure reactivity
     },
-    hapusKRS(mataKuliah, event) {
+    async hapusKRS(mataKuliah, event) {
       event.stopPropagation(); // Prevent triggering other click events
+      const userId = VueCookies.get('user_id');
+
+      console.log('Attempting to drop course:', {
+        userId,
+        course: mataKuliah
+      });
+
       if (mataKuliah.diambil) {
-        mataKuliah.diambil = false;
-        mataKuliah.terisi--;
-        this.totalSKS -= mataKuliah.sks;
+        try {
+          console.log('Sending request to remove CourseRequest:', {
+            course_id: mataKuliah.course_id,
+            user_id: userId
+          });
+          await axios.delete(`http://localhost:3000/courserequests/${mataKuliah.course_id}/${userId}`);
+          mataKuliah.diambil = false;
+          mataKuliah.terisi--;
+          this.totalSKS -= mataKuliah.sks;
+          this.$forceUpdate(); // To ensure reactivity
+        } catch (error) {
+          console.error('Error removing CourseRequest:', error);
+        }
+      } else {
+        console.warn('Course not taken, cannot drop.');
       }
-      this.$forceUpdate(); // To ensure reactivity
     },
     openDetail(mataKuliah) {
       this.selectedMataKuliah = mataKuliah;
@@ -175,6 +240,34 @@ export default {
     },
     closeModal() {
       this.showModal = false;
+    },
+    async fetchCourses() {
+      const departmentId = VueCookies.get('department');
+      const userId = VueCookies.get('user_id');
+      if (!departmentId) {
+        console.error('Department ID is not found in cookies.');
+        return;
+      }
+      try {
+        const [coursesResponse, takenCoursesResponse] = await Promise.all([
+          fetch(`http://localhost:3000/courses/${departmentId}`).then(response => response.json()),
+          fetch(`http://localhost:3000/courserequests/${userId}`).then(response => response.json())
+        ]);
+
+        if (coursesResponse.success && takenCoursesResponse.success) {
+          const takenCourses = takenCoursesResponse.data.map(request => request.course_id);
+          this.mataKuliahTersedia = coursesResponse.data.map(mk => ({
+            ...mk,
+            diambil: takenCourses.includes(mk.course_id),
+            terisi: mk.terisi || 0,
+            kapasitas: mk.kapasitas || Infinity
+          }));
+        } else {
+          console.error('Error fetching courses or taken courses:', coursesResponse, takenCoursesResponse);
+        }
+      } catch (error) {
+        console.error('Error fetching courses:', error);
+      }
     }
   },
   watch: {
@@ -187,6 +280,9 @@ export default {
       deep: true,
       immediate: true
     }
+  },
+  mounted() {
+    this.fetchCourses();
   }
 };
 </script>

@@ -20,12 +20,12 @@
         <div v-if="!tableView" class="cards-container">
           <div v-for="(item, index) in filteredBimbingan" :key="`bimbingan-${index}`" class="card">
             <div class="card-header">
-              <h3>{{ item.topik }}</h3>
+              <h3>{{ item.topic }}</h3>
               <div class="divider"></div>
             </div>
             <div class="card-body">
-              <p>{{ item.namaDosen }}</p>
-              <p>{{ item.judul }}</p>
+              <p>{{ item.nama_dosen }}</p>
+              <p>{{ item.title }}</p>
               <p>{{ item.status }}</p>
               <button @click="lihatSlotWaktu(item)" class="lihat-slot-button">Lihat Slot Waktu</button>
             </div>
@@ -44,9 +44,9 @@
             </thead>
             <tbody>
               <tr v-for="(item, index) in filteredBimbingan" :key="`table-${index}`">
-                <td>{{ item.topik }}</td>
-                <td>{{ item.namaDosen }}</td>
-                <td>{{ item.judul }}</td>
+                <td>{{ item.topic }}</td>
+                <td>{{ item.nama_dosen }}</td>
+                <td>{{ item.title }}</td>
                 <td>{{ item.status }}</td>
                 <td>
                   <button @click="lihatSlotWaktu(item)" class="lihat-slot-button">Lihat Slot Waktu</button>
@@ -95,18 +95,7 @@ export default {
       tableView: false,
       showModal: false,
       selectedSlots: [],
-      bimbinganList: [
-        { topik: 'KRS', namaDosen: 'Dr. John Doe', status: 'Belum Disetujui', judul: 'Semester 1', type: 'krs' },
-        { topik: 'Kerja Praktik', namaDosen: 'Dr. Jane Smith', status: 'Disetujui', judul: 'Analisis Sistem Informasi', type: 'kp' },
-        { topik: 'Skripsi', namaDosen: 'Prof. Alice Brown', status: 'Belum Disetujui', judul: 'Pengembangan Aplikasi Mobile', type: 'skripsi' },
-        { topik: 'KRS', namaDosen: 'Dr. Chris Black', status: 'Belum Disetujui', judul: 'Semester 2', type: 'krs' },
-        { topik: 'Kerja Praktik', namaDosen: 'Dr. Sarah White', status: 'Disetujui', judul: 'Pengembangan Sistem E-Commerce', type: 'kp' },
-        { topik: 'Skripsi', namaDosen: 'Prof. Michael Green', status: 'Belum Disetujui', judul: 'Analisis Data Big Data', type: 'skripsi' },
-        { topik: 'KRS', namaDosen: 'Dr. Anna Red', status: 'Belum Disetujui', judul: 'Semester 3', type: 'krs' },
-        { topik: 'Kerja Praktik', namaDosen: 'Dr. Paul Yellow', status: 'Disetujui', judul: 'Desain User Interface', type: 'kp' },
-        { topik: 'Skripsi', namaDosen: 'Prof. Robert Blue', status: 'Belum Disetujui', judul: 'Keamanan Jaringan', type: 'skripsi' },
-        // Tambah data bimbingan lainnya
-      ],
+      bimbinganList: []
     };
   },
   computed: {
@@ -117,29 +106,85 @@ export default {
     }
   },
   methods: {
-    toggleView() {
-      this.tableView = !this.tableView;
-      if (this.tableView) {
-        this.filter = 'all'; // Reset filter when switching to table view
-      }
-    },
-    lihatSlotWaktu(item) {
-      this.selectedSlots = [
-        { hari: 'Senin', tanggal: '01-08-2024', waktu: '08:00 - 09:00', ruang: 'A101' },
-        { hari: 'Selasa', tanggal: '02-08-2024', waktu: '09:00 - 10:00', ruang: 'B202' },
-        { hari: 'Rabu', tanggal: '03-08-2024', waktu: '10:00 - 11:00', ruang: 'C303' },
-        // Tambah slot waktu lainnya
-      ];
-      this.showModal = true;
-    },
-    pilihSlot(slot) {
-      console.log(`Slot ${slot.hari}, ${slot.tanggal}, ${slot.waktu}, ${slot.ruang} dipilih`);
-      this.closeModal();
-    },
-    closeModal() {
-      this.showModal = false;
+  toggleView() {
+    this.tableView = !this.tableView;
+    if (this.tableView) {
+      this.filter = 'all'; // Reset filter when switching to table view
     }
+  },
+  lihatSlotWaktu(item) {
+    console.log(`Fetching slots for guidance ID: ${item.guidance_id}`); // Log request initiation
+    fetch(`http://localhost:3000/guidanceslots/student/${item.guidance_id}`)
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          console.log('Slots fetched successfully:', data.data); // Log successful response
+          this.selectedSlots = data.data.map(slot => ({
+            slot_id: slot.slot_id,
+            hari: this.getDayOfWeek(slot.date),
+            tanggal: slot.date,
+            waktu: `${slot.start_time} - ${slot.end_time}`,
+            ruang: slot.room
+          }));
+          console.log('Mapped slots:', this.selectedSlots); // Log mapped slots
+          this.showModal = true;
+        } else {
+          console.error('Error fetching slots:', data.message); // Log error response
+        }
+      })
+      .catch(error => {
+        console.error('Error fetching slots:', error); // Log fetch error
+      });
+  },
+  pilihSlot(slot) {
+    console.log(`Slot ${slot.hari}, ${slot.tanggal}, ${slot.waktu}, ${slot.ruang} dipilih`);
+    this.closeModal();
+  },
+  closeModal() {
+    this.showModal = false;
+  },
+  fetchBimbingan() {
+    const userId = 4; // Sesuaikan dengan user_id yang sesuai
+    fetch(`http://localhost:3000/guidances/student/${userId}`)
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          this.bimbinganList = data.data.map(item => ({
+            guidance_id: item.guidance_id,
+            topic: item.topic,
+            nama_dosen: item.nama_dosen,
+            title: item.title,
+            status: item.status,
+            type: this.getTypeFromTopic(item.topic) // Tambahkan fungsi untuk menentukan tipe dari topik
+          }));
+        }
+      })
+      .catch(error => {
+        console.error('Error fetching data:', error);
+      });
+  },
+  getTypeFromTopic(topic) {
+    switch (topic.toLowerCase()) {
+      case 'krs':
+        return 'krs';
+      case 'kerja praktik':
+        return 'kp';
+      case 'skripsi':
+        return 'skripsi';
+      default:
+        return 'all';
+    }
+  },
+  getDayOfWeek(dateString) {
+    const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+    const date = new Date(dateString);
+    return days[date.getDay()];
   }
+},
+mounted() {
+  this.fetchBimbingan();
+  console.log('Component mounted, fetching bimbingan'); // Log component mount
+}
 };
 </script>
 
@@ -208,7 +253,6 @@ export default {
   padding-bottom: 20px;
   padding-right: 10px; /* Tambahkan padding kanan untuk konsistensi */
 }
-
 
 .container {
   display: flex;

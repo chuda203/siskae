@@ -1,4 +1,3 @@
-// router.js
 import { createRouter, createWebHistory } from 'vue-router';
 
 import Beranda_Mahasiswa from './views/Mahasiswa/Beranda/index.vue';
@@ -9,6 +8,7 @@ import Transkrip from './views/Mahasiswa/Transkrip/index.vue';
 import Beranda_Dosen from './views/Dosen/Beranda/index.vue';
 import MataKuliah from './views/Dosen/MataKuliah/index.vue';
 import Riwayat from './views/Dosen/Riwayat/index.vue';
+import ACC_KRS from './views/Dosen/KRS/index.vue'
 
 import Publikasi from './views/Publikasi.vue';
 import Saran from './views/Saran.vue';
@@ -31,6 +31,7 @@ const routes = [
   { path: '/bimbingan', name: 'bimbingan', component: Bimbingan, meta: { roles: ['mahasiswa', 'dosen'] } },
   { path: '/dosen/beranda', name: 'beranda_dosen', component: Beranda_Dosen, meta: { roles: ['dosen'] } },
   { path: '/mata-kuliah', name: 'mata_kuliah', component: MataKuliah, meta: { roles: ['dosen'] } },
+  { path: '/acc-krs', name: 'acc-krs', component: ACC_KRS, meta: { roles: ['dosen'] } },
   { path: '/riwayat', name: 'riwayat', component: Riwayat, meta: { roles: ['dosen'] } }
 ];
 
@@ -52,10 +53,10 @@ router.beforeEach((to, from, next) => {
       console.log('User role does not match the route roles, redirecting...');
       if (auth.role === 'dosen') {
         console.log('Redirecting to Dosen homepage.');
-        next({ name: 'beranda_dosen' });
+        next({ name: 'acc_krs' });
       } else {
         console.log('Redirecting to Mahasiswa homepage.');
-        next({ name: 'beranda' });
+        next({ name: 'krs' });
       }
     } else {
       console.log('Proceeding as user role matches.');

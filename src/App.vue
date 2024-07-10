@@ -34,6 +34,7 @@ export default {
         return [
           { name: 'Beranda', path: '/dosen/beranda', icon: 'home' },
           { name: 'Bimbingan', path: '/bimbingan', icon: 'bullhorn' },
+          { name: 'KRS', path: '/acc-krs', icon: 'book' },
           { name: 'Mata Kuliah', path: '/mata-kuliah', icon: 'book' },
           { name: 'Publikasi', path: '/publikasi', icon: 'pencil-alt' },
           { name: 'Riwayat', path: '/riwayat', icon: 'chart-line' },

@@ -23,14 +23,13 @@
         <div v-if="!tableView" class="cards-container">
           <div v-for="(jadwal, index) in filteredJadwalKuliah" :key="`jadwal-${index}`" class="card" @click="openDetail(jadwal)">
             <div class="card-header">
-              <h3>{{ jadwal.namaMataKuliah }}</h3>
+              <h3>{{ jadwal.course_name }}</h3>
               <div class="divider"></div>
             </div>
             <div class="card-body">
-              <p>{{ jadwal.hari }}, {{ jadwal.waktu }} WIB</p>
-              <p>{{ jadwal.sks }} SKS</p>
-              <p>Dosen: {{ jadwal.namaDosen }}</p>
-              <button @click.stop="presensi(jadwal)" class="presensi-button">Presensi</button>
+              <p>{{ jadwal.day }}, {{ jadwal.start_time }} - {{ jadwal.end_time }} WIB</p>
+              <p>{{ jadwal.credits }} SKS</p>
+              <p>Ruang: {{ jadwal.room }}</p>
             </div>
           </div>
         </div>
@@ -41,27 +40,19 @@
                 <th>Nama Mata Kuliah</th>
                 <th>Kode</th>
                 <th>SKS</th>
-                <th>Dosen</th>
                 <th>Hari</th>
                 <th>Waktu</th>
                 <th>Ruang Kelas</th>
-                <th>Nilai UTS</th>
-                <th>Nilai UAS</th>
-                <th>Presensi</th>
               </tr>
             </thead>
             <tbody>
               <tr v-for="(jadwal, index) in filteredJadwalKuliah" :key="`table-${index}`">
-                <td>{{ jadwal.namaMataKuliah }}</td>
-                <td>{{ jadwal.kodeMataKuliah }}</td>
-                <td>{{ jadwal.sks }}</td>
-                <td>{{ jadwal.namaDosen }}</td>
-                <td>{{ jadwal.hari }}</td>
-                <td>{{ jadwal.waktu }}</td>
-                <td>{{ jadwal.ruangKelas }}</td>
-                <td>{{ jadwal.nilaiUTS }}</td>
-                <td>{{ jadwal.nilaiUAS }}</td>
-                <td><button @click.stop="presensi(jadwal)" class="presensi-button">Presensi</button></td>
+                <td>{{ jadwal.course_name }}</td>
+                <td>{{ jadwal.course_code }}</td>
+                <td>{{ jadwal.credits }}</td>
+                <td>{{ jadwal.day }}</td>
+                <td>{{ jadwal.start_time }} - {{ jadwal.end_time }}</td>
+                <td>{{ jadwal.room }}</td>
               </tr>
             </tbody>
           </table>
@@ -71,39 +62,27 @@
   </div>
   <div v-if="showModal" class="modal-overlay" @click="closeModal">
     <div class="modal-content" @click.stop>
-      <h2 class="modal-title">{{ selectedJadwal.namaMataKuliah }}</h2>
+      <h2 class="modal-title">{{ selectedJadwal.course_name }}</h2>
       <table class="detail-table">
         <tr>
           <td>Kode:</td>
-          <td>{{ selectedJadwal.kodeMataKuliah }}</td>
+          <td>{{ selectedJadwal.course_code }}</td>
         </tr>
         <tr>
           <td>SKS:</td>
-          <td>{{ selectedJadwal.sks }}</td>
-        </tr>
-        <tr>
-          <td>Dosen:</td>
-          <td>{{ selectedJadwal.namaDosen }}</td>
+          <td>{{ selectedJadwal.credits }}</td>
         </tr>
         <tr>
           <td>Hari:</td>
-          <td>{{ selectedJadwal.hari }}</td>
+          <td>{{ selectedJadwal.day }}</td>
         </tr>
         <tr>
           <td>Waktu:</td>
-          <td>{{ selectedJadwal.waktu }}</td>
+          <td>{{ selectedJadwal.start_time }} - {{ selectedJadwal.end_time }}</td>
         </tr>
         <tr>
           <td>Ruang Kelas:</td>
-          <td>{{ selectedJadwal.ruangKelas }}</td>
-        </tr>
-        <tr>
-          <td>Nilai UTS:</td>
-          <td>{{ selectedJadwal.nilaiUTS }}</td>
-        </tr>
-        <tr>
-          <td>Nilai UAS:</td>
-          <td>{{ selectedJadwal.nilaiUAS }}</td>
+          <td>{{ selectedJadwal.room }}</td>
         </tr>
       </table>
     </div>
@@ -111,16 +90,15 @@
 </template>
 
 <script>
+import VueCookies from 'vue-cookies';
+import axios from 'axios';
+
 export default {
   data() {
     return {
       selectedHari: 'all',
       tableView: false,
-      jadwalKuliah: [
-        { kodeMataKuliah: 'IF101', namaMataKuliah: 'Pemrograman Dasar', sks: 3, namaDosen: 'Dr. John Doe', hari: 'Senin', waktu: '08:00 - 10:00', ruangKelas: 'A101', nilaiUTS: 85, nilaiUAS: 90 },
-        { kodeMataKuliah: 'IF102', namaMataKuliah: 'Struktur Data', sks: 3, namaDosen: 'Dr. Jane Smith', hari: 'Selasa', waktu: '10:00 - 12:00', ruangKelas: 'B202', nilaiUTS: 78, nilaiUAS: 88 },
-        // Tambahkan jadwal lainnya
-      ],
+      jadwalKuliah: [],
       selectedJadwal: {},
       showModal: false
     };
@@ -130,11 +108,23 @@ export default {
       if (this.selectedHari === 'all') {
         return this.jadwalKuliah;
       } else {
-        return this.jadwalKuliah.filter(jadwal => jadwal.hari === this.selectedHari);
+        return this.jadwalKuliah.filter(jadwal => jadwal.day === this.selectedHari);
       }
     }
   },
   methods: {
+    async fetchJadwalKuliah() {
+      const userId = VueCookies.get('user_id');
+      const currentSemester = VueCookies.get('current_semester');
+      try {
+        const response = await axios.get(`http://localhost:3000/schedule/${userId}/${currentSemester}`);
+        if (response.data.success) {
+          this.jadwalKuliah = response.data.data;
+        }
+      } catch (error) {
+        console.error('Error fetching schedule:', error);
+      }
+    },
     toggleView() {
       this.tableView = !this.tableView;
       if (this.tableView) {
@@ -149,8 +139,11 @@ export default {
       this.showModal = false;
     },
     presensi(jadwal) {
-      alert(`Presensi untuk ${jadwal.namaMataKuliah}`);
+      alert(`Presensi untuk ${jadwal.course_name}`);
     }
+  },
+  mounted() {
+    this.fetchJadwalKuliah();
   }
 };
 </script>
