@@ -32,29 +32,28 @@ export default {
     const getMenuItems = (role) => {
       if (role === 'dosen') {
         return [
-          { name: 'Beranda', path: '/dosen/beranda', icon: 'home' },
-          { name: 'Bimbingan', path: '/bimbingan', icon: 'bullhorn' },
-          { name: 'KRS', path: '/acc-krs', icon: 'book' },
-          { name: 'Mata Kuliah', path: '/mata-kuliah', icon: 'book' },
-          { name: 'Publikasi', path: '/publikasi', icon: 'pencil-alt' },
-          { name: 'Riwayat', path: '/riwayat', icon: 'chart-line' },
-          { name: 'Saran', path: '/saran', icon: 'graduation-cap' },
-          { name: 'Ujian', path: '/ujian', icon: 'calendar' }
+          { name: 'Beranda', path: '/dosen/beranda', icon: 'fas fa-home' },
+          { name: 'Bimbingan', path: '/bimbingan', icon: 'fas fa-bullhorn' },
+          { name: 'KRS', path: '/acc-krs', icon: 'fas fa-book' },
+          { name: 'Mata Kuliah', path: '/mata-kuliah', icon: 'fas fa-book' },
+          { name: 'Publikasi', path: '/publikasi', icon: 'fas fa-pencil-alt' },
+          { name: 'Riwayat', path: '/riwayat', icon: 'fas fa-chart-line' },
+          { name: 'Ujian', path: '/ujian', icon: 'fas fa-calendar' }
         ];
       } else {
         return [
-          { name: 'Beranda', path: '/', icon: 'home' },
-          { name: 'Bimbingan', path: '/bimbingan', icon: 'bullhorn' },
-          { name: 'Kelas', path: '/kelas', icon: 'calendar-check' },
-          { name: 'KRS', path: '/krs', icon: 'edit' },
-          { name: 'Publikasi', path: '/publikasi', icon: 'pencil-alt' },
-          { name: 'Saran', path: '/saran', icon: 'graduation-cap' },
-          { name: 'Transkrip', path: '/transkrip', icon: 'file-alt' },
-          { name: 'Ujian', path: '/ujian', icon: 'calendar' }
+          { name: 'Beranda', path: '/', icon: 'fas fa-home' },
+          { name: 'Bimbingan', path: '/bimbingan', icon: 'fas fa-bullhorn' },
+          { name: 'Kelas', path: '/kelas', icon: 'fas fa-calendar-check' },
+          { name: 'KRS', path: '/krs', icon: 'fas fa-edit' },
+          { name: 'Publikasi', path: '/publikasi', icon: 'fas fa-pencil-alt' },
+          { name: 'Transkrip', path: '/transkrip', icon: 'fas fa-file-alt' },
+          { name: 'Ujian', path: '/ujian', icon: 'fas fa-calendar' }
         ];
       }
     };
 
+    
     const showHeader = computed(() => !route.meta.hideHeader);
     const showFooter = computed(() => !route.meta.hideFooter);
 

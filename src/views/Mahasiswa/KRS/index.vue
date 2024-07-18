@@ -1,5 +1,7 @@
 <template>
-  <h1 class="title">Kartu Rencana Studi (KRS)</h1>
+  <h1 class="title-container">
+    <span class="title">Rencana Studi</span>
+  </h1>  
   <div class="container">
     <div class="container-content">
       <div class="main-wrapper">
@@ -21,15 +23,28 @@
           <div v-for="(mataKuliah, index) in filteredMataKuliah" :key="`mataKuliah-${index}`" class="card" @click="openDetail(mataKuliah)">
             <div class="card-header">
               <h3>{{ mataKuliah.nama }}</h3>
-              <div class="divider"></div>
+              <img 
+                v-if="!mataKuliah.diambil" 
+                :class="['ambil-icon', { 'disabled': !canTakeCourse(mataKuliah) || mataKuliah.terisi >= mataKuliah.kapasitas }]" 
+                @click.stop="ambilKRS(mataKuliah, $event)" 
+                src="../../../assets/ic_ambil.png" 
+                alt="Ambil"
+                :style="{ backgroundColor: canTakeCourse(mataKuliah) && mataKuliah.terisi < mataKuliah.kapasitas ? '#3498db' : '#95a5a6' }"
+              />
+              <img 
+                v-else 
+                class="batal-icon" 
+                @click.stop="hapusKRS(mataKuliah, $event)" 
+                src="../../../assets/ic_ambil.png" 
+                alt="Batal"
+                style="background-color: #e74c3c;"
+              />
             </div>
+            <div class="divider"></div>
             <div class="card-body">
-              <p>{{ mataKuliah.sks }} SKS</p>
               <p>{{ mataKuliah.namaDosen }}</p>
+              <p>{{ mataKuliah.sks }} SKS</p>
               <p>Semester {{ mataKuliah.semester }}</p>
-              <div class="enrollment-info">{{ mataKuliah.terisi }} / {{ mataKuliah.kapasitas }}</div>
-              <button v-if="!mataKuliah.diambil" :class="['ambil-button', { 'disabled': !canTakeCourse(mataKuliah) || mataKuliah.terisi >= mataKuliah.kapasitas }]" @click.stop="ambilKRS(mataKuliah, $event)" :disabled="!canTakeCourse(mataKuliah) || mataKuliah.terisi >= mataKuliah.kapasitas">Ambil</button>
-              <button v-else class="batal-button" @click.stop="hapusKRS(mataKuliah, $event)">Batal</button>
             </div>
           </div>
         </div>
@@ -37,15 +52,13 @@
           <table class="table">
             <thead>
               <tr>
-                <th>Nama Mata Kuliah</th>
-                <th>Kode</th>
-                <th>SKS</th>
-                <th>Dosen</th>
-                <th>Semester</th>
-                <th>Ruang Kelas</th>
+                <th @click="sortTable('nama')">Nama Mata Kuliah</th>
+                <th @click="sortTable('kode')">Kode</th>
+                <th @click="sortTable('sks')">SKS</th>
+                <th @click="sortTable('namaDosen')">Dosen</th>
+                <th @click="sortTable('semester')">Semester</th>
+                <th @click="sortTable('ruangKelas')">Ruang Kelas</th>
                 <th>Status</th>
-                <th>Terisi</th>
-                <th>Kapasitas</th>
               </tr>
             </thead>
             <tbody>
@@ -57,12 +70,14 @@
                 <td>{{ mataKuliah.semester }}</td>
                 <td>{{ mataKuliah.ruangKelas }}</td>
                 <td>
-                  <button :class="[mataKuliah.diambil ? 'batal-button' : 'ambil-button', { 'disabled': !mataKuliah.diambil && (!canTakeCourse(mataKuliah) || mataKuliah.terisi >= mataKuliah.kapasitas) }]" @click="mataKuliah.diambil ? hapusKRS(mataKuliah, $event) : ambilKRS(mataKuliah, $event)" :disabled="!mataKuliah.diambil && (!canTakeCourse(mataKuliah) || mataKuliah.terisi >= mataKuliah.kapasitas)">
-                    {{ mataKuliah.diambil ? 'Batal' : 'Ambil' }}
-                  </button>
+                  <img 
+                    :class="[mataKuliah.diambil ? 'batal-icon' : 'ambil-icon', { 'disabled': !mataKuliah.diambil && (!canTakeCourse(mataKuliah) || mataKuliah.terisi >= mataKuliah.kapasitas) }]" 
+                    @click="mataKuliah.diambil ? hapusKRS(mataKuliah, $event) : ambilKRS(mataKuliah, $event)" 
+                    src="../../../assets/ic_ambil.png" 
+                    :alt="mataKuliah.diambil ? 'Batal' : 'Ambil'"
+                    :style="{ backgroundColor: mataKuliah.diambil ? '#e74c3c' : (canTakeCourse(mataKuliah) && mataKuliah.terisi < mataKuliah.kapasitas ? '#3498db' : '#95a5a6') }"
+                  />
                 </td>
-                <td>{{ mataKuliah.terisi }}</td>
-                <td>{{ mataKuliah.kapasitas }}</td>
               </tr>
             </tbody>
           </table>
@@ -81,8 +96,6 @@
           <tr><td><strong>Dosen</strong></td><td>{{ selectedMataKuliah.namaDosen }}</td></tr>
           <tr><td><strong>Semester</strong></td><td>{{ selectedMataKuliah.semester }}</td></tr>
           <tr><td><strong>Ruang Kelas</strong></td><td>{{ selectedMataKuliah.ruangKelas }}</td></tr>
-          <tr><td><strong>Terisi</strong></td><td>{{ selectedMataKuliah.terisi }}</td></tr>
-          <tr><td><strong>Kapasitas</strong></td><td>{{ selectedMataKuliah.kapasitas }}</td></tr>
         </table>
       </div>
     </div>
@@ -92,6 +105,7 @@
 <script>
 import VueCookies from 'vue-cookies';
 import axios from 'axios';
+import { useToast } from 'vue-toastification';
 
 export default {
   data() {
@@ -102,7 +116,9 @@ export default {
       selectedMataKuliah: {},
       batasSKS: VueCookies.get('credit_quota') || 20, // Dapatkan batas SKS dari cookies
       totalSKS: 0,
-      mataKuliahTersedia: []
+      mataKuliahTersedia: [],
+      sortBy: '',
+      sortOrder: ''
     };
   },
   computed: {
@@ -152,6 +168,7 @@ export default {
     },
     async ambilKRS(mataKuliah, event) {
       event.stopPropagation(); // Prevent triggering other click events
+      const toast = useToast();
       const userId = VueCookies.get('user_id');
       const lecturerId = VueCookies.get('lecturer_id');
       const currentSemester = VueCookies.get('current_semester');
@@ -191,6 +208,7 @@ export default {
                 mataKuliah.terisi++;
                 this.totalSKS += mataKuliah.sks;
                 this.$forceUpdate(); // To ensure reactivity
+                toast.success(`Anda berhasil mengambil ${mataKuliah.nama} untuk diajukan`);
               } else {
                 console.error('Failed to add CourseRequest:', response.data.message);
               }
@@ -209,6 +227,7 @@ export default {
     },
     async hapusKRS(mataKuliah, event) {
       event.stopPropagation(); // Prevent triggering other click events
+      const toast = useToast();
       const userId = VueCookies.get('user_id');
 
       console.log('Attempting to drop course:', {
@@ -227,6 +246,7 @@ export default {
           mataKuliah.terisi--;
           this.totalSKS -= mataKuliah.sks;
           this.$forceUpdate(); // To ensure reactivity
+          toast.info(`Anda telah membatalkan pengambilan ${mataKuliah.nama}`);
         } catch (error) {
           console.error('Error removing CourseRequest:', error);
         }
@@ -327,7 +347,7 @@ export default {
   white-space: nowrap;
   margin-bottom: 20px;
   padding-right: 0px;
-  padding-left: 140px;
+  padding-left: 190px;
   height: 40px;
 }
 
@@ -368,11 +388,11 @@ export default {
   justify-content: center;
   align-items: center;
   flex-wrap: wrap;
-  padding: 20px;
+  padding-bottom: 100px;
+  padding-inline: 30px;
   width: 100%;
   height: 80vh;
   overflow: hidden;
-  position: relative; /* Ensure absolute positioning works */
 }
 
 .view-toggle {
@@ -404,9 +424,27 @@ export default {
   position: relative;
 }
 
+.title-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
 .title {
-  text-align: center;
-  margin-bottom: 20px;
+  background-color: white; /* Background putih */
+  border-radius: 10px; /* Sudut yang membulat */
+  padding: 10px 20px; /* Padding di dalam judul */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Bayangan halus */
+  text-align: center; /* Teks di tengah */
+  display: inline-block;
+}
+
+@media (max-width: 768px) {
+  .title {
+    margin-top: 10px;
+    font-size: 1em; /* Kurangi ukuran font pada tampilan mobile */
+    white-space: normal; /* Izinkan teks untuk membungkus */
+  }
 }
 
 .cards-container {
@@ -428,6 +466,9 @@ export default {
 }
 
 .card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   position: relative;
 }
 
@@ -438,47 +479,27 @@ export default {
 .divider {
   height: 1px;
   background-color: #ccc;
-  margin: 10px 0;
-  width: calc(100% - 20px);
-  margin-left: 10px;
-  margin-right: 10px;
+  margin: 2px 0;
+  width: 100%;
 }
 
 .card-body p {
   margin: 5px 0;
 }
 
-.ambil-button,
-.batal-button,
-.ambil-button.disabled {
-  padding: 10px 20px;
-  border: none;
+.ambil-icon,
+.batal-icon {
   cursor: pointer;
+  width: 40px;  /* Atur ukuran yang sesuai */
+  height: 40px; /* Atur ukuran yang sesuai */
+  object-fit: cover; /* Pastikan gambar menyesuaikan dengan kontainernya */
+  padding: 10px;
+  border-radius: 10px;
   transition: background-color 0.3s;
-  margin: 5px 0;
-  border-radius: 20px;
 }
 
-.ambil-button {
-  background-color: #3498db;
-  color: white;
-}
-
-.batal-button {
-  background-color: #e74c3c;
-  color: white;
-}
-
-.ambil-button:hover {
-  background-color: #2980b9;
-}
-
-.batal-button:hover {
-  background-color: #c0392b;
-}
-
-.ambil-button.disabled,
-.ambil-button.disabled:hover {
+.ambil-icon.disabled,
+.ambil-icon.disabled:hover {
   background-color: #95a5a6;
   cursor: not-allowed;
 }

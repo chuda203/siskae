@@ -1,5 +1,7 @@
 <template>
-  <h1 class="title">Jadwal Kuliah</h1>
+  <h1 class="title-container">
+    <span class="title">Jadwal Kuliah</span>
+  </h1>
   <div class="container">
     <div class="container-content">
       <div class="main-wrapper">
@@ -24,8 +26,10 @@
           <div v-for="(jadwal, index) in filteredJadwalKuliah" :key="`jadwal-${index}`" class="card" @click="openDetail(jadwal)">
             <div class="card-header">
               <h3>{{ jadwal.course_name }}</h3>
-              <div class="divider"></div>
+              <img v-if="isPresensiActive(jadwal) && !isAlreadyPresensi(jadwal)" @click.stop="presensi(jadwal)" src="../../../assets/ic_presensi.png" alt="Presensi" class="presensi-icon" />
+              <img v-if="isAlreadyPresensi(jadwal)" src="../../../assets/ic_presensi.png" alt="Presensi" class="presensi-icon presensi-disabled" />
             </div>
+            <div class="divider"></div>
             <div class="card-body">
               <p>{{ jadwal.day }}, {{ jadwal.start_time }} - {{ jadwal.end_time }} WIB</p>
               <p>{{ jadwal.credits }} SKS</p>
@@ -92,6 +96,8 @@
 <script>
 import VueCookies from 'vue-cookies';
 import axios from 'axios';
+import moment from 'moment-timezone';
+import { useToast } from 'vue-toastification';
 
 export default {
   data() {
@@ -100,7 +106,10 @@ export default {
       tableView: false,
       jadwalKuliah: [],
       selectedJadwal: {},
-      showModal: false
+      showModal: false,
+      eventReports: [],
+      presensiStatus: {}, // Tambahkan properti ini untuk menyimpan status presensi
+      developmentMode: false // Pastikan nilai ini diatur ke false
     };
   },
   computed: {
@@ -125,6 +134,59 @@ export default {
         console.error('Error fetching schedule:', error);
       }
     },
+    async fetchEventReports() {
+      const userId = VueCookies.get('user_id');
+      try {
+        const response = await axios.get(`http://localhost:3000/activeeventreport/${userId}`);
+        if (response.data.success) {
+          this.eventReports = response.data.data;
+        }
+      } catch (error) {
+        console.error('Error fetching event reports:', error);
+      }
+    },
+    async checkPresensiStatus() {
+      const userId = VueCookies.get('user_id');
+      for (let event of this.eventReports) {
+        try {
+          const response = await axios.get(`http://localhost:3000/attendance/check/${event.report_id}/${userId}`);
+          if (response.data.success) {
+            this.presensiStatus[event.report_id] = response.data.attended;
+          }
+        } catch (error) {
+          console.error('Error checking presensi status:', error);
+        }
+      }
+    },
+    isPresensiActive(jadwal) {
+      console.log('Development mode:', this.developmentMode);
+      if (this.developmentMode) {
+        console.log('Development mode active, always enabling presensi.');
+        return true; // Selalu aktifkan presensi saat dalam mode pengembangan
+      }
+      const now = moment().tz('Asia/Jakarta');
+      console.log("Current time: ", now.format('HH:mm:ss'));
+      return this.eventReports.some(event => {
+        const eventDate = moment(event.date).tz('Asia/Jakarta').format('YYYY-MM-DD');
+        const nowDate = now.format('YYYY-MM-DD');
+        const startTime = moment(event.start_time, 'HH:mm:ss').tz('Asia/Jakarta');
+        const endTime = moment(event.end_time, 'HH:mm:ss').tz('Asia/Jakarta');
+
+        console.log(`Checking event: ${event.course_id}, Date: ${eventDate}, Now Date: ${nowDate}, Start Time: ${startTime.format('HH:mm:ss')}, End Time: ${endTime.format('HH:mm:ss')}`);
+        
+        return event.course_id === jadwal.course_id &&
+          eventDate === nowDate &&
+          startTime.isSameOrBefore(now) &&
+          endTime.isSameOrAfter(now);
+      });
+    },
+    isAlreadyPresensi(jadwal) {
+      const event = this.eventReports.find(event => event.course_id === jadwal.course_id);
+      if (event) {
+        return this.presensiStatus[event.report_id] || false;
+      }
+      return false;
+    },
     toggleView() {
       this.tableView = !this.tableView;
       if (this.tableView) {
@@ -138,18 +200,36 @@ export default {
     closeModal() {
       this.showModal = false;
     },
-    presensi(jadwal) {
-      alert(`Presensi untuk ${jadwal.course_name}`);
+    async presensi(jadwal) {
+      const toast = useToast();
+      const userId = VueCookies.get('user_id');
+      const event = this.eventReports.find(event => event.course_id === jadwal.course_id);
+      if (event) {
+        try {
+          await axios.post('http://localhost:3000/attendance', {
+            report_id: event.report_id,
+            user_id: userId,
+            status: 'Present'
+          });
+          this.presensiStatus[event.report_id] = true;
+          toast.success(`Anda telah presensi untuk ${jadwal.course_name}`);
+        } catch (error) {
+          console.error('Error submitting presensi:', error);
+          toast.error('Terjadi kesalahan saat presensi.');
+        }
+      }
     }
   },
-  mounted() {
-    this.fetchJadwalKuliah();
+  async mounted() {
+    await this.fetchJadwalKuliah();
+    await this.fetchEventReports();
+    await this.checkPresensiStatus();
+    console.log('Data loaded: ', this.jadwalKuliah, this.eventReports);
   }
 };
 </script>
 
 <style scoped>
-/* Tambahkan gaya CSS Anda di sini */
 .main-wrapper {
   width: 100%;
   position: relative;
@@ -166,11 +246,12 @@ export default {
 .filter-buttons-container {
   display: flex;
   justify-content: center;
-  width: 80%;
+  width: 90%;
   overflow-x: auto;
   white-space: nowrap;
   margin-bottom: 20px;
-  padding-left: 300px; /* Tambahkan padding kiri */
+  padding-left: 200px; /* Tambahkan padding kiri */
+  padding-right: 10px; /* Tambahkan padding kanan */
   height: 40px; /* Tambahkan tinggi tetap */
 }
 
@@ -211,7 +292,8 @@ export default {
   justify-content: center;
   align-items: center;
   flex-wrap: wrap;
-  padding: 20px;
+  padding-bottom: 100px;
+  padding-inline: 30px;
   width: 100%;
   height: 80vh;
   overflow: hidden;
@@ -246,9 +328,27 @@ export default {
   position: relative;
 }
 
+.title-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
 .title {
-  text-align: center;
-  margin-bottom: 20px;
+  background-color: white; /* Background putih */
+  border-radius: 10px; /* Sudut yang membulat */
+  padding: 10px 20px; /* Padding di dalam judul */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Bayangan halus */
+  text-align: center; /* Teks di tengah */
+  display: inline-block;
+}
+
+@media (max-width: 768px) {
+  .title {
+    margin-top: 10px;
+    font-size: 1em; /* Kurangi ukuran font pada tampilan mobile */
+    white-space: normal; /* Izinkan teks untuk membungkus */
+  }
 }
 
 .cards-container {
@@ -270,7 +370,10 @@ export default {
 }
 
 .card-header {
-  position: relative;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 5px;
 }
 
 .card-header h3 {
@@ -280,29 +383,27 @@ export default {
 .divider {
   height: 1px;
   background-color: #ccc;
-  margin: 10px 0;
-  width: calc(100% - 20px);
-  margin-left: 10px;
-  margin-right: 10px;
+  margin: 0px 0;
+  width: 100%;
 }
 
 .card-body p {
   margin: 5px 0;
 }
 
-.presensi-button {
-  padding: 10px 20px;
-  border: none;
+.presensi-icon {
   cursor: pointer;
-  transition: background-color 0.3s;
-  margin: 5px 0;
+  width: 35px;  /* Atur ukuran yang sesuai */
+  height: 35px; /* Atur ukuran yang sesuai */
+  object-fit: cover; /* Pastikan gambar menyesuaikan dengan kontainernya */
   background-color: #3498db;
-  color: white;
-  border-radius: 20px; /* Rounded corners */
+  margin-bottom: 5px;
+  border-radius: 10px;
 }
 
-.presensi-button:hover {
-  background-color: #2980b9;
+.presensi-disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
 }
 
 .modal-overlay {

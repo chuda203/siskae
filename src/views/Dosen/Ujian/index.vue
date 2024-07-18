@@ -1,5 +1,8 @@
+
 <template>
-  <h1 class="title">Jadwal Ujian</h1>
+  <h1 class="title-container">
+    <span class="title">Jadwal Ujian</span>
+  </h1>
   <div class="container">
     <div class="container-content">
       <div class="main-wrapper">
@@ -13,16 +16,14 @@
             <button class="filter-button" :class="{'active': selectedHari === 'Jumat'}" @click="selectedHari = 'Jumat'">Jumat</button>
             <button class="filter-button" :class="{'active': selectedHari === 'Sabtu'}" @click="selectedHari = 'Sabtu'">Sabtu</button>
           </div>
-          <div class="view-toggle-wrapper">
-            <div class="view-toggle" @click="toggleView">
-              <img v-if="tableView" src="../../../assets/ic_card.png" alt="Card View" />
-              <img v-else src="../../../assets/ic_table.png" alt="Table View" />
-            </div>
-          </div>
-          <div class="print-button-wrapper">
+          <div class="view-print-wrapper">
             <div class="print-button" @click="printJadwalUjian">
               <img src="../../../assets/ic_print.png" alt="Print Icon" />
               <p>Print</p>
+            </div>
+            <div class="view-toggle" @click="toggleView">
+              <img v-if="tableView" src="../../../assets/ic_card.png" alt="Card View" />
+              <img v-else src="../../../assets/ic_table.png" alt="Table View" />
             </div>
           </div>
         </div>
@@ -35,6 +36,7 @@
             <div class="card-body">
               <p>{{ ujian.hari }}, {{ ujian.waktu }} WIB</p>
               <p>{{ ujian.bobotSKS }} SKS</p>
+              <p>Dosen: {{ ujian.namaDosen }}</p>
               <p>Ruang: {{ ujian.ruangKelas }}</p>
             </div>
           </div>
@@ -75,6 +77,7 @@
             <th>Nama Kuliah</th>
             <th>Kode</th>
             <th>SKS</th>
+            <th>Dosen</th>
             <th>Hari</th>
             <th>Waktu</th>
             <th>Ruang</th>
@@ -85,6 +88,7 @@
             <td>{{ ujian.namaKuliah }}</td>
             <td>{{ ujian.kodeMataKuliah }}</td>
             <td>{{ ujian.bobotSKS }}</td>
+            <td>{{ ujian.namaDosen }}</td>
             <td>{{ ujian.hari }}</td>
             <td>{{ ujian.waktu }}</td>
             <td>{{ ujian.ruangKelas }}</td>
@@ -95,6 +99,7 @@
   </div>
 </template>
 
+
 <script>
 export default {
   data() {
@@ -102,8 +107,8 @@ export default {
       selectedHari: 'all',
       tableView: false,
       jadwalUjian: [
-        { kodeMataKuliah: 'MK001', namaKuliah: 'Matematika', bobotSKS: 3, hari: 'Senin', waktu: '08:00 - 10:00', ruangKelas: 'R101' },
-        { kodeMataKuliah: 'MK002', namaKuliah: 'Fisika', bobotSKS: 3, hari: 'Selasa', waktu: '10:00 - 12:00', ruangKelas: 'R102' }
+        { kodeMataKuliah: 'MK001', namaKuliah: 'Matematika', bobotSKS: 3, namaDosen: 'Dr. John Doe', hari: 'Senin', waktu: '08:00 - 10:00', ruangKelas: 'R101' },
+        { kodeMataKuliah: 'MK002', namaKuliah: 'Fisika', bobotSKS: 3, namaDosen: 'Dr. Jane Doe', hari: 'Selasa', waktu: '10:00 - 12:00', ruangKelas: 'R102' }
         // Tambahkan jadwal ujian lainnya
       ]
     };
@@ -137,6 +142,56 @@ export default {
 </script>
 
 <style scoped>
+.container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  padding-bottom: 100px;
+  padding-inline: 30px;
+  width: 100%;
+  height: 80vh;
+  overflow: hidden;
+}
+
+.container-content {
+  background-color: white;
+  border-radius: 10px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+  width: 100%;
+  height: 100%;
+  overflow-y: auto;
+  max-width: 1500px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+}
+
+.title-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.title {
+  background-color: white; /* Background putih */
+  border-radius: 10px; /* Sudut yang membulat */
+  padding: 10px 20px; /* Padding di dalam judul */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Bayangan halus */
+  text-align: center; /* Teks di tengah */
+  display: inline-block;
+}
+
+@media (max-width: 768px) {
+  .title {
+    margin-top: 10px;
+    font-size: 1em; /* Kurangi ukuran font pada tampilan mobile */
+    white-space: normal; /* Izinkan teks untuk membungkus */
+  }
+}
+
 .main-wrapper {
   width: 100%;
   position: relative;
@@ -147,29 +202,32 @@ export default {
   justify-content: space-between;
   align-items: center;
   width: 100%;
-  margin-bottom: 10px;
+  margin-bottom: 10px; /* Tambahkan margin bawah */
+  flex-wrap: wrap;
 }
 
 .filter-buttons-container {
   display: flex;
   justify-content: center;
-  width: 80%;
   overflow-x: auto;
   white-space: nowrap;
-  margin-bottom: 20px;
-  padding-left: 300px;
-  height: 40px;
+  padding-inline-start: 100px;
+  flex-grow: 1;
+}
+
+.filter-buttons-container.hidden {
+  display: none;
 }
 
 .filter-buttons-container::-webkit-scrollbar {
-  display: none;
+  display: none; /* For Chrome, Safari, and Opera */
 }
 
 .filter-button {
   border: none;
   background-color: #cccccc;
   color: black;
-  padding: 0px 20px;
+  padding: 10px 20px;
   border-radius: 20px;
   cursor: pointer;
   margin-right: 10px;
@@ -185,12 +243,25 @@ export default {
   margin-right: 0;
 }
 
-.view-toggle-wrapper {
+.view-print-wrapper {
   display: flex;
   align-items: center;
-  margin-left: auto;
-  padding-bottom: 20px;
-  padding-right: 10px;
+  justify-content: flex-end;
+}
+
+@media (max-width: 768px) {
+  .view-print-wrapper {
+    justify-content: space-between;
+    width: 100%;
+    margin-top: 10px;
+  }
+
+  .filter-buttons-container {
+    width: 100%;
+    justify-content: center;
+    order: -1;
+    padding-inline-start: 300px;
+  }
 }
 
 .view-toggle {
@@ -199,19 +270,13 @@ export default {
   cursor: pointer;
   width: 40px;
   height: 40px;
+  margin-left: 10px;
 }
 
 .view-toggle img {
   width: 100%;
   height: 100%;
   object-fit: cover;
-}
-
-.print-button-wrapper {
-  display: flex;
-  align-items: center;
-  margin-bottom: 20px;
-  margin-left: 20px;
 }
 
 .print-button {
@@ -236,37 +301,6 @@ export default {
   font-size: 12px;
 }
 
-.container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  flex-wrap: wrap;
-  padding: 20px;
-  width: 100%;
-  height: 80vh;
-  overflow: hidden;
-}
-
-.container-content {
-  background-color: white;
-  border-radius: 10px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  padding: 20px;
-  width: 100%;
-  height: 100%;
-  overflow-y: auto;
-  max-width: 1500px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  position: relative;
-}
-
-.title {
-  text-align: center;
-  margin-bottom: 20px;
-}
-
 .cards-container {
   display: flex;
   flex-wrap: wrap;
@@ -283,9 +317,6 @@ export default {
   width: 300px;
   cursor: pointer;
   position: relative;
-  display: flex;
-  flex-direction: column; /* Tambahkan ini untuk tata letak kolom */
-  text-align: center; /* Pusatkan teks */
 }
 
 .card-header {
@@ -319,7 +350,8 @@ export default {
   margin-top: 20px;
 }
 
-.table th, .table td {
+.table th,
+.table td {
   padding: 8px;
   text-align: left;
   border-bottom: 1px solid #ccc;

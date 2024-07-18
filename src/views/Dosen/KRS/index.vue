@@ -1,5 +1,7 @@
 <template>
-  <h1 class="title">Kartu Rencana Studi (KRS) - Dosen</h1>
+  <h1 class="title-container">
+    <span class="title">Rencana Studi</span>
+  </h1>  
   <div class="container">
     <div class="container-content">
       <div class="main-wrapper">
@@ -25,7 +27,6 @@
             <div class="card-body">
               <p>NIM: {{ mahasiswa.nim }}</p>
               <p>Semester: {{ mahasiswa.semester }}</p>
-              <button class="lihat-detail-button" @click.stop="openDetail(mahasiswa)">Lihat Detail</button>
             </div>
           </div>
         </div>
@@ -37,16 +38,14 @@
                 <th @click="sortTable('nim')">NIM</th>
                 <th @click="sortTable('semester')">Semester</th>
                 <th @click="sortTable('totalSKS')">Total SKS</th>
-                <th>Aksi</th>
               </tr>
             </thead>
             <tbody>
-              <tr v-for="(mahasiswa, index) in sortedMahasiswaTable" :key="`table-${index}`">
+              <tr v-for="(mahasiswa, index) in sortedMahasiswaTable" :key="`table-${index}`" @click="openDetail(mahasiswa)">
                 <td>{{ mahasiswa.nama }}</td>
                 <td>{{ mahasiswa.nim }}</td>
                 <td>{{ mahasiswa.semester }}</td>
                 <td>{{ mahasiswa.totalSKS }}</td>
-                <td><button class="lihat-detail-button" @click="openDetail(mahasiswa)">Lihat Detail</button></td>
               </tr>
             </tbody>
           </table>
@@ -91,6 +90,7 @@
 <script>
 import VueCookies from 'vue-cookies';
 import axios from 'axios';
+import { useToast } from 'vue-toastification';
 
 export default {
   data() {
@@ -199,6 +199,7 @@ export default {
       this.showModal = false;
     },
     async terimaMahasiswa(mahasiswa) {
+      const toast = useToast();
       const { nim, semester } = mahasiswa;
 
       try {
@@ -210,6 +211,7 @@ export default {
         if (response.data.success) {
           mahasiswa.status = 'Approved';
           this.showModal = false;
+          toast.success(`Anda telah menerima KRS dari ${mahasiswa.nama}`);
         }
       } catch (error) {
         console.error('Error approving course request:', error);
@@ -221,7 +223,6 @@ export default {
   }
 };
 </script>
-
 <style scoped>
 .sks-quota {
   font-size: 1em;
@@ -304,7 +305,8 @@ export default {
   justify-content: center;
   align-items: center;
   flex-wrap: wrap;
-  padding: 20px;
+  padding-bottom: 100px;
+  padding-inline: 30px;
   width: 100%;
   height: 80vh;
   overflow: hidden;
@@ -339,9 +341,19 @@ export default {
   position: relative;
 }
 
+.title-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
 .title {
-  text-align: center;
-  margin-bottom: 20px;
+  background-color: white; /* Background putih */
+  border-radius: 10px; /* Sudut yang membulat */
+  padding: 10px 20px; /* Padding di dalam judul */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Bayangan halus */
+  text-align: center; /* Teks di tengah */
+  display: inline-block;
 }
 
 .cards-container {
@@ -362,7 +374,7 @@ export default {
   position: relative; /* Necessary for absolute positioning of children */
   display: flex;
   flex-direction: column; /* Tambahkan ini untuk tata letak kolom */
-  text-align: center; /* Pusatkan teks */
+  text-align: start; /* Pusatkan teks */
 }
 
 .card-header {
@@ -376,14 +388,12 @@ export default {
 .divider {
   height: 1px;
   background-color: #ccc;
-  margin: 10px 0;
-  width: calc(100% - 20px);
-  margin-left: 10px;
-  margin-right: 10px;
+  margin: 5px 0;
+  width: 100%;
 }
 
 .card-body p {
-  margin: 5px 0;
+  margin: 2px 0;
 }
 
 .lihat-detail-button {

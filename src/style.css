@@ -1,10 +1,17 @@
-/* style.css di direktori src */
+/* src/style.css */
 
 /* Reset styling untuk memastikan konsistensi lintas browser */
 body {
   margin: 0;
   padding: 0;
+  background-color: rgb(211, 208, 204);
   box-sizing: border-box;  /* Memungkinkan lebar dan tinggi untuk menyertakan padding dan border */
+  font-family: 'MyCustomFont';  /* Nama font */
+  src: url('./assets/inter.ttf') format('truetype');  /* Path ke file font */
+  background-image: url('/src/assets/bg2.jpg');  /* Path ke gambar background */
+  background-size: cover;  /* Menutupi seluruh layar */
+  background-repeat: no-repeat;  /* Tidak mengulang gambar */
+  background-position: center;  /* Pusatkan gambar */
 }
 
 /* Menerapkan box-sizing ke semua elemen */
@@ -12,3 +19,9 @@ body {
   box-sizing: inherit;
 }
 
+@font-face {
+  font-family: 'MyCustomFont';  /* Nama font */
+  src: url('./assets/inter.ttf') format('truetype');  /* Path ke file font */
+  font-weight: normal;
+  font-style: normal;
+}

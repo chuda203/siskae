@@ -1,5 +1,7 @@
 <template>
-  <h1 class="title">Bimbingan</h1>
+  <h1 class="title-container">
+    <span class="title">Bimbingan</span>
+  </h1>  
   <div class="container">
     <div class="container-content">
       <div class="main-wrapper">
@@ -21,13 +23,13 @@
           <div v-for="(item, index) in filteredBimbingan" :key="`bimbingan-${index}`" class="card">
             <div class="card-header">
               <h3>{{ item.topic }}</h3>
-              <div class="divider"></div>
+              <img @click="lihatSlotWaktu(item)" src="../../../assets/ic_slot4.png" alt="Lihat Slot" class="lihat-slot-icon" />
             </div>
+            <div class="divider"></div>
             <div class="card-body">
               <p>{{ item.nama_dosen }}</p>
-              <p>{{ item.title }}</p>
+              <!-- <p>{{ item.title }}</p> -->
               <p>{{ item.status }}</p>
-              <button @click="lihatSlotWaktu(item)" class="lihat-slot-button">Lihat Slot Waktu</button>
             </div>
           </div>
         </div>
@@ -49,7 +51,7 @@
                 <td>{{ item.title }}</td>
                 <td>{{ item.status }}</td>
                 <td>
-                  <button @click="lihatSlotWaktu(item)" class="lihat-slot-button">Lihat Slot Waktu</button>
+                  <img @click="lihatSlotWaktu(item)" src="../../../assets/ic_slot.png" alt="Lihat Slot" class="lihat-slot-icon" />
                 </td>
               </tr>
             </tbody>
@@ -88,6 +90,9 @@
 </template>
 
 <script>
+import Cookies from 'js-cookie';
+import { useToast } from 'vue-toastification';
+
 export default {
   data() {
     return {
@@ -106,85 +111,108 @@ export default {
     }
   },
   methods: {
-  toggleView() {
-    this.tableView = !this.tableView;
-    if (this.tableView) {
-      this.filter = 'all'; // Reset filter when switching to table view
+    toggleView() {
+      this.tableView = !this.tableView;
+      if (this.tableView) {
+        this.filter = 'all'; // Reset filter when switching to table view
+      }
+    },
+    lihatSlotWaktu(item) {
+      console.log(`Fetching slots for guidance ID: ${item.guidance_id}`); // Log request initiation
+      fetch(`http://localhost:3000/guidanceslots/student/${item.guidance_id}`)
+        .then(response => {
+          if (!response.ok) {
+            if (response.status === 404) {
+              // Jika respons 404, berarti tidak ada data
+              return { success: false, message: 'No guidance slots found' };
+            }
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+          return response.json();
+        })
+        .then(data => {
+          const toast = useToast();
+          if (data.success) {
+            console.log('Slots fetched successfully:', data.data); // Log successful response
+            if (data.data.length === 0) {
+              // Tampilkan notifikasi jika tidak ada slot waktu bimbingan
+              toast.info('Tidak ada slot waktu bimbingan yang tersedia untuk topik ini.');
+            } else {
+              this.selectedSlots = data.data.map(slot => ({
+                slot_id: slot.slot_id,
+                hari: this.getDayOfWeek(slot.date),
+                tanggal: slot.date,
+                waktu: `${slot.start_time} - ${slot.end_time}`,
+                ruang: slot.room
+              }));
+              console.log('Mapped slots:', this.selectedSlots); // Log mapped slots
+              this.showModal = true;
+            }
+          } else {
+            console.error('Error fetching slots:', data.message); // Log error response
+            toast.info('Tidak ada slot waktu bimbingan yang tersedia untuk topik ini.');
+          }
+        })
+        .catch(error => {
+          console.error('Error fetching slots:', error); // Log fetch error
+          const toast = useToast();
+          toast.error('Terjadi kesalahan saat mengambil data slot waktu bimbingan.');
+        });
+    },
+    pilihSlot(slot) {
+      console.log(`Slot ${slot.hari}, ${slot.tanggal}, ${slot.waktu}, ${slot.ruang} dipilih`);
+      this.closeModal();
+    },
+    closeModal() {
+      this.showModal = false;
+    },
+    fetchBimbingan() {
+      const userId = Cookies.get('user_id'); // Ambil user_id dari cookies
+      if (!userId) {
+        console.error('User ID not found in cookies');
+        return;
+      }
+
+      fetch(`http://localhost:3000/guidances/student/${userId}`)
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            this.bimbinganList = data.data.map(item => ({
+              guidance_id: item.guidance_id,
+              topic: item.topic,
+              nama_dosen: item.nama_dosen,
+              title: item.title,
+              status: item.status,
+              type: this.getTypeFromTopic(item.topic) // Tambahkan fungsi untuk menentukan tipe dari topik
+            }));
+          }
+        })
+        .catch(error => {
+          console.error('Error fetching data:', error);
+        });
+    },
+    getTypeFromTopic(topic) {
+      switch (topic.toLowerCase()) {
+        case 'krs':
+          return 'krs';
+        case 'kerja praktik':
+          return 'kp';
+        case 'skripsi':
+          return 'skripsi';
+        default:
+          return 'all';
+      }
+    },
+    getDayOfWeek(dateString) {
+      const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+      const date = new Date(dateString);
+      return days[date.getDay()];
     }
   },
-  lihatSlotWaktu(item) {
-    console.log(`Fetching slots for guidance ID: ${item.guidance_id}`); // Log request initiation
-    fetch(`http://localhost:3000/guidanceslots/student/${item.guidance_id}`)
-      .then(response => response.json())
-      .then(data => {
-        if (data.success) {
-          console.log('Slots fetched successfully:', data.data); // Log successful response
-          this.selectedSlots = data.data.map(slot => ({
-            slot_id: slot.slot_id,
-            hari: this.getDayOfWeek(slot.date),
-            tanggal: slot.date,
-            waktu: `${slot.start_time} - ${slot.end_time}`,
-            ruang: slot.room
-          }));
-          console.log('Mapped slots:', this.selectedSlots); // Log mapped slots
-          this.showModal = true;
-        } else {
-          console.error('Error fetching slots:', data.message); // Log error response
-        }
-      })
-      .catch(error => {
-        console.error('Error fetching slots:', error); // Log fetch error
-      });
-  },
-  pilihSlot(slot) {
-    console.log(`Slot ${slot.hari}, ${slot.tanggal}, ${slot.waktu}, ${slot.ruang} dipilih`);
-    this.closeModal();
-  },
-  closeModal() {
-    this.showModal = false;
-  },
-  fetchBimbingan() {
-    const userId = 4; // Sesuaikan dengan user_id yang sesuai
-    fetch(`http://localhost:3000/guidances/student/${userId}`)
-      .then(response => response.json())
-      .then(data => {
-        if (data.success) {
-          this.bimbinganList = data.data.map(item => ({
-            guidance_id: item.guidance_id,
-            topic: item.topic,
-            nama_dosen: item.nama_dosen,
-            title: item.title,
-            status: item.status,
-            type: this.getTypeFromTopic(item.topic) // Tambahkan fungsi untuk menentukan tipe dari topik
-          }));
-        }
-      })
-      .catch(error => {
-        console.error('Error fetching data:', error);
-      });
-  },
-  getTypeFromTopic(topic) {
-    switch (topic.toLowerCase()) {
-      case 'krs':
-        return 'krs';
-      case 'kerja praktik':
-        return 'kp';
-      case 'skripsi':
-        return 'skripsi';
-      default:
-        return 'all';
-    }
-  },
-  getDayOfWeek(dateString) {
-    const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
-    const date = new Date(dateString);
-    return days[date.getDay()];
+  mounted() {
+    this.fetchBimbingan();
+    console.log('Component mounted, fetching bimbingan'); // Log component mount
   }
-},
-mounted() {
-  this.fetchBimbingan();
-  console.log('Component mounted, fetching bimbingan'); // Log component mount
-}
 };
 </script>
 
@@ -259,7 +287,8 @@ mounted() {
   justify-content: center;
   align-items: center;
   flex-wrap: wrap;
-  padding: 20px;
+  padding-bottom: 100px;
+  padding-inline: 30px;
   width: 100%;
   height: 80vh;
   overflow: hidden;
@@ -294,9 +323,27 @@ mounted() {
   position: relative;
 }
 
+.title-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
 .title {
-  text-align: center;
-  margin-bottom: 20px;
+  background-color: white; /* Background putih */
+  border-radius: 10px; /* Sudut yang membulat */
+  padding: 10px 20px; /* Padding di dalam judul */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Bayangan halus */
+  text-align: center; /* Teks di tengah */
+  display: inline-block;
+}
+
+@media (max-width: 768px) {
+  .title {
+    margin-top: 10px;
+    font-size: 1em; /* Kurangi ukuran font pada tampilan mobile */
+    white-space: normal; /* Izinkan teks untuk membungkus */
+  }
 }
 
 .cards-container {
@@ -318,20 +365,30 @@ mounted() {
 }
 
 .card-header {
-  position: relative;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .card-header h3 {
-  margin: 0;
+}
+
+.lihat-slot-icon {
+  cursor: pointer;
+  width: 35px;  /* Atur ukuran yang sesuai */
+  height: 35px; /* Atur ukuran yang sesuai */
+  object-fit: cover; /* Pastikan gambar menyesuaikan dengan kontainernya */
+  background-color: #3498db;
+  margin-bottom: 5px;
+  border-radius: 10px;
 }
 
 .divider {
   height: 1px;
   background-color: #ccc;
-  margin: 10px 0;
-  width: calc(100% - 20px);
-  margin-left: 10px;
-  margin-right: 10px;
+  margin: 0px 0;
+  width: 100%;
+
 }
 
 .card-body p {

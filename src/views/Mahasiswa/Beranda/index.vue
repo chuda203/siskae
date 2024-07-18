@@ -1,5 +1,18 @@
 <template>
     <div class="pengumuman">
+      <h1>Halaman Pengumuman</h1>
+      <div class="announcement-section">
+        <h2>Pengumuman</h2>
+        <ul>
+          <li v-for="(announcement, index) in announcements" :key="index">
+            {{ announcement }}
+          </li>
+        </ul>
+      </div>
+      <div class="calendar-section">
+        <h2>Kalender Akademik</h2>
+        <img :src="calendarImage" alt="Kalender Akademik" />
+      </div>
 
     </div>
   </template>

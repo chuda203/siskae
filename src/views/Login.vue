@@ -84,7 +84,7 @@ export default {
           this.$cookies.set('user_id', this.authState.user_id, '1h'); // Simpan user_id di cookies
 
           // Redirect to home page
-          this.$router.push('/saran');
+          this.$router.push('/bimbingan');
         } else {
           console.error('Login failed:', response.data.message);
         }

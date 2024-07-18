@@ -1,5 +1,7 @@
 <template>
-  <h1 class="title">Riwayat Mengajar</h1>
+  <h1 class="title-container">
+    <span class="title">Riwayat Mengajar</span>
+  </h1>  
   <div class="container">
     <div class="container-content">
       <div class="main-wrapper">
@@ -22,9 +24,8 @@
               <div class="divider"></div>
             </div>
             <div class="card-body">
-              <p><strong>Hari:</strong> {{ mengajar.hari }}</p>
-              <p><strong>Tanggal:</strong> {{ mengajar.tanggal }}</p>
-              <p><strong>Waktu:</strong> {{ mengajar.waktuMulai }} - {{ mengajar.waktuSelesai }}</p>
+              <p>{{ mengajar.hari }}<strong>, </strong> {{ mengajar.tanggal }}</p>
+              <p> {{ mengajar.waktuMulai }} - {{ mengajar.waktuSelesai }}<strong> WIB</strong></p>
               <p><strong>Topik:</strong> {{ mengajar.topik }}</p>
             </div>
           </div>
@@ -59,6 +60,9 @@
 </template>
 
 <script>
+import axios from 'axios';
+import moment from 'moment-timezone';
+
 export default {
   data() {
     return {
@@ -66,48 +70,7 @@ export default {
       tableView: false,
       sortBy: null,
       sortOrder: 'asc',
-      mengajarList: [
-        {
-          mataKuliah: 'Basis Data',
-          hari: 'Senin',
-          tanggal: '2024-07-01',
-          waktuMulai: '09:00',
-          waktuSelesai: '11:00',
-          topik: 'Pengenalan Basis Data'
-        },
-        {
-          mataKuliah: 'Algoritma',
-          hari: 'Selasa',
-          tanggal: '2024-07-02',
-          waktuMulai: '10:00',
-          waktuSelesai: '12:00',
-          topik: 'Algoritma Dasar'
-        },
-        {
-          mataKuliah: 'Pemrograman Lanjut',
-          hari: 'Rabu',
-          tanggal: '2024-07-03',
-          waktuMulai: '13:00',
-          waktuSelesai: '15:00',
-          topik: 'Pemrograman Berbasis Objek'
-        },
-        {
-          mataKuliah: 'Basis Data',
-          hari: 'Senin',
-          tanggal: '2024-07-08',
-          waktuMulai: '09:00',
-          waktuSelesai: '11:00',
-          topik: 'Normalisasi Basis Data'
-        },
-        {
-          mataKuliah: 'Algoritma',
-          hari: 'Selasa',
-          tanggal: '2024-07-09',
-          waktuMulai: '10:00',
-          waktuSelesai: '12:00',
-          topik: 'Algoritma Lanjut'
-        }
-      ]
+      mengajarList: [] // Menghapus data statis
     };
   },
   computed: {
@@ -146,7 +109,29 @@ export default {
         this.sortBy = field;
         this.sortOrder = 'asc';
       }
+    },
+    async fetchMengajarList() {
+      const userId = this.$cookies.get('user_id');
+      try {
+        const response = await axios.get(`http://localhost:3000/eventreports/dosen/${userId}`);
+        this.mengajarList = response.data.data.map(mengajar => {
+          const eventDate = moment(mengajar.tanggal).tz('Asia/Jakarta');
+          return {
+            mataKuliah: mengajar.mataKuliah,
+            hari: eventDate.format('dddd'), // Mendapatkan hari dari tanggal
+            tanggal: eventDate.format('YYYY-MM-DD'),
+            waktuMulai: moment(mengajar.waktuMulai, 'HH:mm:ss').tz('Asia/Jakarta').format('HH:mm:ss'),
+            waktuSelesai: moment(mengajar.waktuSelesai, 'HH:mm:ss').tz('Asia/Jakarta').format('HH:mm:ss'),
+            topik: mengajar.topik
+          };
+        });
+      } catch (error) {
+        console.error('Error fetching mengajar list:', error);
+      }
     }
+  },
+  mounted() {
+    this.fetchMengajarList();
   }
 };
 </script>
@@ -223,7 +208,8 @@ export default {
   justify-content: center;
   align-items: center;
   flex-wrap: wrap;
-  padding: 20px;
+  padding-bottom: 100px;
+  padding-inline: 30px;
   width: 100%;
   height: 80vh;
   overflow: hidden;
@@ -258,9 +244,19 @@ export default {
   position: relative;
 }
 
+.title-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
 .title {
-  text-align: center;
-  margin-bottom: 20px;
+  background-color: white; /* Background putih */
+  border-radius: 10px; /* Sudut yang membulat */
+  padding: 10px 20px; /* Padding di dalam judul */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Bayangan halus */
+  text-align: center; /* Teks di tengah */
+  display: inline-block;
 }
 
 .cards-container {
@@ -281,7 +277,7 @@ export default {
   position: relative; /* Necessary for absolute positioning of children */
   display: flex;
   flex-direction: column; /* Tambahkan ini untuk tata letak kolom */
-  text-align: center; /* Pusatkan teks */
+  text-align: start; /* Pusatkan teks */
 }
 
 .card-header {
@@ -295,10 +291,8 @@ export default {
 .divider {
   height: 1px;
   background-color: #ccc;
-  margin: 10px 0;
-  width: calc(100% - 20px);
-  margin-left: 10px;
-  margin-right: 10px;
+  margin: 5px 0;
+  width: 100%;
 }
 
 .card-body p {

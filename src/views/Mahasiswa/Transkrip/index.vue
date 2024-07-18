@@ -1,6 +1,7 @@
 <template>
-  <h1 class="title">KARTU HASIL (KHS)</h1>
-
+  <h1 class="title-container">
+    <span class="title">Transkrip</span>
+  </h1>
   <div class="main-wrapper">
     <div class="content-wrapper">
       <div class="left-container">
@@ -76,9 +77,6 @@
             </div>
           </div>
         </div>
-        <div class="chart-container">
-          <canvas id="ipsChart"></canvas>
-        </div>
         <div class="print-card" @click="printKHS">
           <img src="../../../assets/ic_print.png" alt="Print Icon" />
           <p>{{ selectedSemester === null ? 'Cetak Transkrip' : 'Cetak KHS' }}</p>
@@ -86,43 +84,43 @@
       </div>
     </div>
     <div id="print-area">
-        <h2>{{ universityName }}</h2>
-        <p>{{ universityAddress }}</p>
-        <h3>TRANSKRIP NILAI</h3>
-        <p>Nama : CHOIRUL HUDA</p>
-        <p>NIM : 21450410037</p>
-        <p>Program Studi : Teknologi Informasi</p>
-        <p>Tempat Lahir : Sukoharjo</p>
-        <p>Tanggal Lahir : 2003-07-14</p>
-        <table class="table">
-          <thead>
-            <tr>
-              <th>NO</th>
-              <th>Nama Mata Kuliah</th>
-              <th>SKS</th>
-              <th>Nilai</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="(mataKuliah, index) in mataKuliah" :key="mataKuliah.kode">
-              <td>{{ index + 1 }}</td>
-              <td>{{ mataKuliah.nama }}</td>
-              <td>{{ mataKuliah.sks }}</td>
-              <td>{{ convertToGrade(mataKuliah.nilai) }}</td>
-            </tr>
-          </tbody>
-        </table>
-        <div class="signature-section">
-          <div class="signature">
-            <p>Yogyakarta, 9 Juli 2024</p>
-            <p>Kepala Program Studi</p>
-            <p>Teknologi Informasi</p>
-            <br><br>
-            <p>Sapriani Gustina, S.Kom., M.Kom,</p>
-          </div>
+      <h2>{{ universityName }}</h2>
+      <p>{{ universityAddress }}</p>
+      <h3>TRANSKRIP NILAI</h3>
+      <p>Nama : CHOIRUL HUDA</p>
+      <p>NIM : 21450410037</p>
+      <p>Program Studi : Teknologi Informasi</p>
+      <p>Tempat Lahir : Sukoharjo</p>
+      <p>Tanggal Lahir : 2003-07-14</p>
+      <table class="table">
+        <thead>
+          <tr>
+            <th>NO</th>
+            <th>Nama Mata Kuliah</th>
+            <th>SKS</th>
+            <th>Nilai</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="(mataKuliah, index) in mataKuliah" :key="mataKuliah.kode">
+            <td>{{ index + 1 }}</td>
+            <td>{{ mataKuliah.nama }}</td>
+            <td>{{ mataKuliah.sks }}</td>
+            <td>{{ convertToGrade(mataKuliah.nilai) }}</td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="signature-section">
+        <div class="signature">
+          <p>Yogyakarta, 9 Juli 2024</p>
+          <p>Kepala Program Studi</p>
+          <p>Teknologi Informasi</p>
+          <br><br>
+          <p>Sapriani Gustina, S.Kom., M.Kom,</p>
         </div>
       </div>
-          <!-- Modal -->
+    </div>
+    <!-- Modal -->
     <div v-if="showModal" class="modal-overlay" @click="closeModal">
       <div class="modal-content" @click.stop>
         <h3 class="modal-title">Detail Mata Kuliah</h3>
@@ -140,15 +138,10 @@
 </template>
 
 <script>
-import { Bar } from 'vue-chartjs';
-import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend } from 'chart.js';
-
-ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
+import axios from 'axios';
+import Cookies from 'js-cookie';
 
 export default {
-  components: {
-    Bar
-  },
   data() {
     return {
       semesters: [1, 2, 3, 4, 5, 6, 7, 8],
@@ -160,41 +153,7 @@ export default {
       selectedMataKuliah: {},
       universityName: 'Nama Universitas',
       universityAddress: 'Alamat Universitas',
-      mataKuliah: [
-        { kode: 'IF101', nama: 'Pemrograman Dasar', sks: 3, dosen: 'Dr. A', nilai: 3.8, semester: 1 },
-        { kode: 'IF102', nama: 'Struktur Data', sks: 3, dosen: 'Dr. B', nilai: 2.9, semester: 1 },
-        { kode: 'IF103', nama: 'Matematika Diskrit', sks: 3, dosen: 'Dr. E', nilai: 3.5, semester: 1 },
-        { kode: 'IF104', nama: 'Logika Informatika', sks: 3, dosen: 'Dr. F', nilai: 3.2, semester: 1 },
-        { kode: 'IF201', nama: 'Algoritma dan Pemrograman', sks: 4, dosen: 'Dr. C', nilai: 3.7, semester: 2 },
-        { kode: 'IF202', nama: 'Basis Data', sks: 4, dosen: 'Dr. D', nilai: 2.8, semester: 2 },
-        { kode: 'IF203', nama: 'Sistem Operasi', sks: 3, dosen: 'Dr. G', nilai: 3.6, semester: 2 },
-        { kode: 'IF204', nama: 'Jaringan Komputer', sks: 3, dosen: 'Dr. H', nilai: 3.1, semester: 2 },
-        { kode: 'IF301', nama: 'Pemrograman Web', sks: 4, dosen: 'Dr. I', nilai: 3.9, semester: 3 },
-        { kode: 'IF302', nama: 'Kecerdasan Buatan', sks: 4, dosen: 'Dr. J', nilai: 2.7, semester: 3 },
-        { kode: 'IF303', nama: 'Teori Bahasa dan Otomata', sks: 3, dosen: 'Dr. K', nilai: 3.4, semester: 3 },
-        { kode: 'IF304', nama: 'Metode Numerik', sks: 3, dosen: 'Dr. L', nilai: 1.0, semester: 3 },
-        { kode: 'IF401', nama: 'Manajemen Proyek', sks: 4, dosen: 'Dr. M', nilai: 3.8, semester: 4 },
-        { kode: 'IF402', nama: 'Sistem Informasi', sks: 4, dosen: 'Dr. N', nilai: 1.9, semester: 4 },
-        { kode: 'IF403', nama: 'Analisis Algoritma', sks: 3, dosen: 'Dr. O', nilai: 3.5, semester: 4 },
-        { kode: 'IF404', nama: 'Pengolahan Citra Digital', sks: 3, dosen: 'Dr. P', nilai: 3.2, semester: 4 },
-        { kode: 'IF501', nama: 'Data Mining', sks: 4, dosen: 'Dr. Q', nilai: 3.9, semester: 5 },
-        { kode: 'IF502', nama: 'Pemrograman Mobile', sks: 4, dosen: 'Dr. R', nilai: 2.6, semester: 5 },
-        { kode: 'IF503', nama: 'Sistem Pakar', sks: 3, dosen: 'Dr. S', nilai: 1.4, semester: 5 },
-        { kode: 'IF504', nama: 'Sistem Informasi Geografis', sks: 3, dosen: 'Dr. T', nilai: 3.1, semester: 5 },
-        { kode: 'IF601', nama: 'Cloud Computing', sks: 4, dosen: 'Dr. U', nilai: 3.8, semester: 6 },
-        { kode: 'IF602', nama: 'Keamanan Jaringan', sks: 4, dosen: 'Dr. V', nilai: 2.7, semester: 6 },
-        { kode: 'IF603', nama: 'Big Data', sks: 3, dosen: 'Dr. W', nilai: 3.5, semester: 6 },
-        { kode: 'IF604', nama: 'Internet of Things', sks: 3, dosen: 'Dr. X', nilai: 3.2, semester: 6 },
-        { kode: 'IF701', nama: 'Pemrograman Game', sks: 4, dosen: 'Dr. Y', nilai: 3.9, semester: 7 },
-        { kode: 'IF702', nama: 'Machine Learning', sks: 4, dosen: 'Dr. Z', nilai: 2.8, semester: 7 },
-        { kode: 'IF703', nama: 'Blockchain', sks: 3, dosen: 'Dr. AA', nilai: 3.5, semester: 7 },
-        { kode: 'IF704', nama: 'Robotika', sks: 3, dosen: 'Dr. BB', nilai: 3.0, semester: 7 },
-        { kode: 'IF801', nama: 'Manajemen TI', sks: 4, dosen: 'Dr. CC', nilai: 3.8, semester: 8 },
-        { kode: 'IF802', nama: 'Skripsi', sks: 4, dosen: 'Dr. DD', nilai: 2.7, semester: 8 },
-        { kode: 'IF803', nama: 'Technopreneurship', sks: 3, dosen: 'Dr. EE', nilai: 3.6, semester: 8 },
-        { kode: 'IF804', nama: 'Kerja Praktik', sks: 3, dosen: 'Dr. FF', nilai: 3.1, semester: 8 },
-        // More courses...
-      ]
+      mataKuliah: []
     };
   },
   computed: {
@@ -280,45 +239,36 @@ export default {
       if (nilai >= 0.75) return 'D';
       return 'E';
     },
-    renderChart() {
-      const ctx = document.getElementById('ipsChart').getContext('2d');
-      new ChartJS(ctx, {
-        type: 'bar',
-        data: {
-          labels: ['Semester 1', 'Semester 2', 'Semester 3', 'Semester 4', 'Semester 5', 'Semester 6', 'Semester 7', 'Semester 8'],
-          datasets: [
-            {
-              label: 'IPS',
-              data: this.getIpsData(),
-              backgroundColor: 'rgba(75, 192, 192, 0.2)',
-              borderColor: 'rgba(75, 192, 192, 1)',
-              borderWidth: 1
-            }
-          ]
-        },
-        options: {
-          scales: {
-            y: {
-              beginAtZero: true
-            }
-          }
-        }
-      });
+    scale100To4(grade) {
+      if (grade >= 85) return 4.0;
+      if (grade >= 80) return 3.7;
+      if (grade >= 75) return 3.3;
+      if (grade >= 70) return 3.0;
+      if (grade >= 65) return 2.7;
+      if (grade >= 60) return 2.3;
+      if (grade >= 55) return 2.0;
+      if (grade >= 50) return 1.7;
+      if (grade >= 45) return 1.3;
+      if (grade >= 40) return 1.0;
+      return 0.0;
     },
-    getIpsData() {
-      const ipsData = [];
-      for (let semester = 1; semester <= 8; semester++) {
-        const semesterCourses = this.mataKuliah.filter(mk => mk.semester === semester);
-        let totalNilai = 0;
-        let totalSKS = 0;
-        semesterCourses.forEach(mk => {
-          totalNilai += mk.nilai * mk.sks;
-          totalSKS += mk.sks;
+    fetchData() {
+      const userId = Cookies.get('user_id');
+      axios.get(`http://localhost:3000/grades/user/${userId}`) // Ganti dengan URL endpoint Anda
+        .then(response => {
+          const data = response.data.data;
+          this.mataKuliah = data.map(course => ({
+            kode: course.kode_mata_kuliah,
+            nama: course.nama_mata_kuliah,
+            sks: course.credits,
+            dosen: course.nama_dosen,
+            nilai: this.scale100To4((course.uts_grade + course.uas_grade) / 2),
+            semester: course.semester
+          }));
+        })
+        .catch(error => {
+          console.error('Error fetching data:', error);
         });
-        const ips = totalNilai / totalSKS;
-        ipsData.push(ips);
-      }
-      return ipsData;
     },
     printKHS() {
       const printContent = document.getElementById('print-area').innerHTML;
@@ -330,18 +280,11 @@ export default {
     }
   },
   mounted() {
-    this.renderChart();
-  },
-  watch: {
-    mataKuliah: {
-      handler() {
-        this.renderChart();
-      },
-      deep: true
-    }
+    this.fetchData();
   }
 };
 </script>
+
 <style>
 .main-wrapper {
   display: flex;
@@ -357,16 +300,16 @@ export default {
 
 .left-container {
   width: 80%; /* Ubah sesuai kebutuhan */
-  padding: 20px;
+  padding: 10px;
   height: 80vh;
 }
 
 .right-container {
   width: 20%; /* Ubah sesuai kebutuhan */
-  padding: 20px;
+  padding: 10px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 20px;
 }
 
 .header-wrapper {
@@ -391,6 +334,22 @@ export default {
 
 .buttons-container::-webkit-scrollbar {
   display: none;
+}
+
+.filter-buttons-container {
+  display: flex;
+  justify-content: center;
+  width: 90%;
+  overflow-x: auto;
+  white-space: nowrap;
+  margin-bottom: 20px;
+  padding-left: 200px; /* Tambahkan padding kiri */
+  padding-right: 10px; /* Tambahkan padding kanan */
+  height: 40px; /* Tambahkan tinggi tetap */
+}
+
+.filter-buttons-container::-webkit-scrollbar {
+  display: none; /* For Chrome, Safari, and Opera */
 }
 
 .filter-button {
@@ -447,9 +406,27 @@ export default {
   position: relative;
 }
 
+.title-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
 .title {
-  text-align: center;
-  margin-bottom: 20px;
+  background-color: white; /* Background putih */
+  border-radius: 10px; /* Sudut yang membulat */
+  padding: 10px 20px; /* Padding di dalam judul */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Bayangan halus */
+  text-align: center; /* Teks di tengah */
+  display: inline-block;
+}
+
+@media (max-width: 768px) {
+  .title {
+    margin-top: 10px;
+    font-size: 1em; /* Kurangi ukuran font pada tampilan mobile */
+    white-space: normal; /* Izinkan teks untuk membungkus */
+  }
 }
 
 .cards-container {
@@ -573,7 +550,7 @@ export default {
   padding: 20px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 20px;
 }
 
 .ipk-ips-wrapper {
@@ -588,7 +565,7 @@ export default {
   background-color: #f9f9f9;
   border: 1px solid #ccc;
   border-radius: 8px;
-  padding: 10px;
+  padding: 20px;
   text-align: center;
 }
 
@@ -604,8 +581,6 @@ export default {
   padding: 20px;
   text-align: center;
   cursor: pointer;
-  width: 100px;
-  height: 100px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -624,5 +599,31 @@ export default {
   font-size: 14px;
 }
 
+@media (max-width: 768px) {
+  .ipk-ips-wrapper {
+    flex-direction: column;
+    gap: 10px;
+  }
 
+  .right-container {
+    padding: 10px;
+  }
+
+  .print-card {
+    margin-top: 0px;
+    width: auto;
+  }
+  .ipk-card, .ips-card {
+  flex: 1;
+  background-color: #f9f9f9;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  padding: 10px;
+  text-align: center;
+}
+.print-card p {
+  margin-top: 10px;
+  font-size: 10px;
+}
+}
 </style>

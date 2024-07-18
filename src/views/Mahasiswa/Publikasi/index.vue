@@ -1,5 +1,7 @@
 <template>
-      <h1 class="title">Publikasi</h1>
+  <h1 class="title-container">
+    <span class="title">Publikasi</span>
+  </h1>  
   <div class="container">
     <div class="container-content">
       <div class="main-wrapper">
@@ -80,6 +82,8 @@
     </div>
   </div>
 </template>
+
+
 <script>
 export default {
   name: 'Publikasi',
@@ -148,7 +152,8 @@ export default {
   justify-content: center;
   align-items: center;
   flex-wrap: wrap;
-  padding: 20px;
+  padding-bottom: 100px;
+  padding-inline: 30px;
   width: 100%;
   height: 80vh;
   overflow: hidden;
@@ -169,11 +174,28 @@ export default {
   position: relative;
 }
 
-.title {
-  text-align: center;
-  margin-bottom: 20px;
+.title-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
+.title {
+  background-color: white; /* Background putih */
+  border-radius: 10px; /* Sudut yang membulat */
+  padding: 10px 20px; /* Padding di dalam judul */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Bayangan halus */
+  text-align: center; /* Teks di tengah */
+  display: inline-block;
+}
+
+@media (max-width: 768px) {
+  .title {
+    margin-top: 10px;
+    font-size: 1em; /* Kurangi ukuran font pada tampilan mobile */
+    white-space: normal; /* Izinkan teks untuk membungkus */
+  }
+}
 .main-wrapper {
   width: 100%;
   position: relative;

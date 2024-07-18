@@ -15,7 +15,7 @@ const db = mysql.createConnection({
   host: 'localhost',
   user: 'root', // ganti dengan username MySQL Anda
   password: '', // ganti dengan password MySQL Anda
-  database: 'siskaev.21' // ganti dengan nama database Anda
+  database: 'siskaev_21' // ganti dengan nama database Anda
 });
 
 // Connect to MySQL
@@ -260,6 +260,56 @@ app.get('/courses/:department_id', (req, res) => {
   });
 });
 
+// Endpoint untuk mendapatkan semua mata kuliah yang diambil oleh mahasiswa
+app.get('/courserequests/:user_id', (req, res) => {
+  const userId = req.params.user_id;
+  const query = `SELECT * FROM CourseRequests WHERE user_id = ?`;
+  
+  db.query(query, [userId], (err, results) => {
+    if (err) {
+      return res.status(500).json({ success: false, message: 'Internal server error' });
+    }
+    res.json({ success: true, data: results });
+  });
+});
+
+// Endpoint untuk mendapatkan jadwal kuliah mahasiswa berdasarkan user_id dan current_semester
+app.get('/schedule/:user_id/:semester', (req, res) => {
+  const { user_id, semester } = req.params;
+
+  const query = `
+    SELECT 
+      c.course_id,
+      c.name AS course_name,
+      c.code AS course_code,
+      c.credits,
+      cs.day,
+      cs.start_time,
+      cs.end_time,
+      cs.room
+    FROM 
+      CourseRequests cr
+    JOIN 
+      Courses c ON cr.course_id = c.course_id
+    LEFT JOIN 
+      ClassSessions cs ON c.course_id = cs.course_id
+    WHERE 
+      cr.user_id = ? 
+      AND cr.current_semester = ? 
+      AND cr.status = 'Approved'
+    ORDER BY 
+      cs.day, cs.start_time;
+  `;
+
+  db.query(query, [user_id, semester], (err, results) => {
+    if (err) {
+      return res.status(500).json({ success: false, message: 'Internal server error' });
+    }
+    res.json({ success: true, data: results });
+  });
+});
+
+
 
 // ClassSessions routes
 app.get('/classsessions', (req, res) => {
@@ -304,6 +354,30 @@ app.post('/eventreports', (req, res) => {
       return res.status(500).json({ success: false, message: 'Internal server error' });
     }
     res.json({ success: true, message: 'Event report added successfully' });
+  });
+});
+
+app.get('/eventreports/:course_id', (req, res) => {
+  const courseId = req.params.course_id;
+  const query = `
+    SELECT 
+      er.report_id, 
+      er.description, 
+      er.date, 
+      er.start_time, 
+      er.end_time 
+    FROM 
+      EventReports er
+    JOIN 
+      Courses c ON er.course_id = c.course_id
+    WHERE 
+      c.course_id = ?`;
+
+  db.query(query, [courseId], (err, results) => {
+    if (err) {
+      return res.status(500).json({ success: false, message: 'Internal server error' });
+    }
+    res.json({ success: true, data: results });
   });
 });
 

@@ -1,102 +1,106 @@
 <template>
-  <h1 class="title">Mata Kuliah</h1>
-  <div class="container">
-    <div class="container-content">
-      <div class="main-wrapper">
-        <div class="header-wrapper">
-          <div v-if="!tableView" class="filter-buttons-container">
-            <button class="filter-button" :class="{'active': selectedHari === 'all'}" @click="selectedHari = 'all'">Semua</button>
-            <button class="filter-button" :class="{'active': selectedHari === 'Senin'}" @click="selectedHari = 'Senin'">Senin</button>
-            <button class="filter-button" :class="{'active': selectedHari === 'Selasa'}" @click="selectedHari = 'Selasa'">Selasa</button>
-            <button class="filter-button" :class="{'active': selectedHari === 'Rabu'}" @click="selectedHari = 'Rabu'">Rabu</button>
-            <button class="filter-button" :class="{'active': selectedHari === 'Kamis'}" @click="selectedHari = 'Kamis'">Kamis</button>
-            <button class="filter-button" :class="{'active': selectedHari === 'Jumat'}" @click="selectedHari = 'Jumat'">Jumat</button>
-            <button class="filter-button" :class="{'active': selectedHari === 'Sabtu'}" @click="selectedHari = 'Sabtu'">Sabtu</button>
-          </div>
-          <div class="view-toggle-wrapper">
-            <div class="view-toggle" @click="toggleView">
-              <img v-if="tableView" src="../../../assets/ic_card.png" alt="Card View" />
-              <img v-else src="../../../assets/ic_table.png" alt="Table View" />
+  <div>
+    <h1 class="title-container">
+      <span class="title">Jadwal Kuliah</span>
+    </h1>
+    <div class="container">
+      <div class="container-content">
+        <div class="main-wrapper">
+          <div class="header-wrapper">
+            <div v-if="!tableView" class="filter-buttons-container">
+              <button class="filter-button" :class="{'active': selectedHari === 'all'}" @click="setFilter('all')">Semua</button>
+              <button class="filter-button" :class="{'active': selectedHari === 'Senin'}" @click="setFilter('Senin')">Senin</button>
+              <button class="filter-button" :class="{'active': selectedHari === 'Selasa'}" @click="setFilter('Selasa')">Selasa</button>
+              <button class="filter-button" :class="{'active': selectedHari === 'Rabu'}" @click="setFilter('Rabu')">Rabu</button>
+              <button class="filter-button" :class="{'active': selectedHari === 'Kamis'}" @click="setFilter('Kamis')">Kamis</button>
+              <button class="filter-button" :class="{'active': selectedHari === 'Jumat'}" @click="setFilter('Jumat')">Jumat</button>
+              <button class="filter-button" :class="{'active': selectedHari === 'Sabtu'}" @click="setFilter('Sabtu')">Sabtu</button>
+            </div>
+            <div class="view-toggle-wrapper">
+              <div class="view-toggle" @click="toggleView">
+                <img v-if="tableView" src="../../../assets/ic_card.png" alt="Card View" />
+                <img v-else src="../../../assets/ic_table.png" alt="Table View" />
+              </div>
             </div>
           </div>
-        </div>
-        <div v-if="!tableView" class="cards-container">
-          <div v-for="(jadwal, index) in filteredJadwalKuliah" :key="index" class="card">
-            <div class="card-header">
-              <h3>{{ jadwal.namaMataKuliah }}</h3>
+          <div v-if="!tableView" class="cards-container">
+            <div v-for="(jadwal, index) in filteredJadwalKuliah" :key="index" class="card" @click="inputNilai(jadwal)">
+              <div class="card-header">
+                <h3>{{ jadwal.namaMataKuliah }}</h3>
+                <img src="../../../assets/ic_presensi.png" alt="Berita Acara" class="presensi-icon" @click.stop="openBeritaAcaraModal(jadwal)" />
+              </div>
               <div class="divider"></div>
-            </div>
-            <div class="card-body">
-              <p>{{ jadwal.hari }}, {{ jadwal.waktu }} WIB</p>
-              <p>{{ jadwal.sks }} SKS</p>
-              <p>Ruang: {{ jadwal.ruangKelas }}</p>
-              <button @click="openBeritaAcaraModal(jadwal)" class="aksi-button">Berita Acara</button>
-              <button @click="inputNilai(jadwal)" class="aksi-button">Input Nilai</button>
+              <div class="card-body">
+                <p>{{ jadwal.hari }}, {{ jadwal.waktu }} WIB</p>
+                <p>{{ jadwal.sks }} SKS</p>
+                <p>Ruang: {{ jadwal.ruangKelas }}</p>
+              </div>
             </div>
           </div>
+          <div v-else class="table-container">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>Hari</th>
+                  <th>Waktu</th>
+                  <th>Kode Mata Kuliah</th>
+                  <th>Nama Mata Kuliah</th>
+                  <th>Semester</th>
+                  <th>Jumlah SKS</th>
+                  <th>Ruang Kelas</th>
+                  <th>Aksi</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="(jadwal, index) in jadwalKuliah" :key="index" @click="inputNilai(jadwal)">
+                  <td>{{ jadwal.hari }}</td>
+                  <td>{{ jadwal.waktu }}</td>
+                  <td>{{ jadwal.kodeMataKuliah }}</td>
+                  <td>{{ jadwal.namaMataKuliah }}</td>
+                  <td>{{ jadwal.semester }}</td>
+                  <td>{{ jadwal.sks }}</td>
+                  <td>{{ jadwal.ruangKelas }}</td>
+                  <td>
+                    <img src="../../../assets/ic_presensi.png" alt="Berita Acara" class="presensi-icon" @click.stop="openBeritaAcaraModal(jadwal)" />
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </div>
-        <div v-else class="table-container">
-          <table class="table">
+      </div>
+
+      <!-- Modal Berita Acara -->
+      <div v-if="showModalBeritaAcara" class="modal-overlay" @click="closeModal">
+        <div class="modal-content" @click.stop>
+          <h3 class="modal-title">Detail Berita Acara</h3>
+          <table class="berita-acara-table">
             <thead>
               <tr>
+                <th>Judul Materi</th>
                 <th>Hari</th>
+                <th>Tanggal</th>
                 <th>Waktu</th>
-                <th>Kode Mata Kuliah</th>
-                <th>Nama Mata Kuliah</th>
-                <th>Semester</th>
-                <th>Jumlah SKS</th>
-                <th>Ruang Kelas</th>
                 <th>Aksi</th>
               </tr>
             </thead>
             <tbody>
-              <tr v-for="(jadwal, index) in filteredJadwalKuliah" :key="index">
-                <td>{{ jadwal.hari }}</td>
-                <td>{{ jadwal.waktu }}</td>
-                <td>{{ jadwal.kodeMataKuliah }}</td>
-                <td>{{ jadwal.namaMataKuliah }}</td>
-                <td>{{ jadwal.semester }}</td>
-                <td>{{ jadwal.sks }}</td>
-                <td>{{ jadwal.ruangKelas }}</td>
-                <td>
-                  <button @click="openBeritaAcaraModal(jadwal)" class="aksi-button">Berita Acara</button>
-                  <button @click="inputNilai(jadwal)" class="aksi-button">Input Nilai</button>
-                </td>
+              <tr v-for="(berita, index) in selectedBeritaAcara" :key="index">
+                <td>{{ berita.description }}</td>
+                <td>{{ berita.date }}</td>
+                <td>{{ berita.start_time }}</td>
+                <td>{{ berita.end_time }}</td>
+                <td><button @click="showHistoriMahasiswa(berita.report_id)" class="aksi-button rounded-button">Presensi</button></td>
               </tr>
             </tbody>
           </table>
+          <button @click="toggleIsiBeritaAcaraForm" class="aksi-button plus-button rounded-button">Tambah Berita Acara</button>
         </div>
       </div>
-    </div>
 
-    <!-- Modal Berita Acara -->
-    <div v-if="showModalBeritaAcara" class="modal-overlay" @click="closeModal">
-      <div class="modal-content" @click.stop>
-        <h3 class="modal-title">Detail Berita Acara</h3>
-        <table class="berita-acara-table">
-          <thead>
-            <tr>
-              <th>Judul Materi</th>
-              <th>Hari</th>
-              <th>Tanggal</th>
-              <th>Waktu</th>
-              <th>Aksi</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="(berita, index) in selectedBeritaAcara" :key="index">
-              <td>{{ berita.judulMateri }}</td>
-              <td>{{ berita.hari }}</td>
-              <td>{{ berita.tanggal }}</td>
-              <td>{{ berita.waktu }}</td>
-              <td><button @click="showHistoriMahasiswa(berita)" class="aksi-button">Lihat Histori Mahasiswa</button></td>
-            </tr>
-          </tbody>
-        </table>
-        <div v-if="!showIsiBeritaAcaraForm">
-          <button @click="toggleIsiBeritaAcaraForm" class="aksi-button plus-button">Tambah Berita Acara</button>
-        </div>
-        <div v-if="showIsiBeritaAcaraForm" class="isi-berita-acara-form">
+      <!-- Modal Isi Berita Acara -->
+      <div v-if="showIsiBeritaAcaraForm" class="modal-overlay" @click="closeModal">
+        <div class="modal-content" @click.stop>
           <h3 class="modal-title">Isi Berita Acara</h3>
           <form @submit.prevent="submitBeritaAcara">
             <div class="form-group">
@@ -104,226 +108,139 @@
               <textarea id="beritaAcara" v-model="formBeritaAcara" required></textarea>
             </div>
             <div class="form-group">
-              <label for="waktuOption">Waktu</label>
-              <div>
-                <button type="button" @click="setWaktuOption('saatIni')" :class="{'active': waktuOption === 'saatIni'}">Saat Ini</button>
-                <button type="button" @click="setWaktuOption('custom')" :class="{'active': waktuOption === 'custom'}">Custom</button>
-              </div>
-            </div>
-            <div v-if="waktuOption === 'custom'" class="form-group">
               <label for="customDate">Tanggal</label>
-              <input type="date" id="customDate" v-model="formCustomDate" />
-              <label for="customTime">Waktu</label>
-              <input type="time" id="customTime" v-model="formCustomTime" />
+              <input type="date" id="customDate" v-model="formCustomDate" required />
             </div>
-            <button type="submit" class="submit-button">Submit</button>
+            <div class="form-group">
+              <label for="customTimeStart">Waktu Mulai</label>
+              <input type="time" id="customTimeStart" v-model="formCustomTimeStart" required />
+            </div>
+            <div class="form-group">
+              <label for="customTimeEnd">Waktu Selesai</label>
+              <input type="time" id="customTimeEnd" v-model="formCustomTimeEnd" required />
+            </div>
+            <button type="submit" class="submit-button rounded-button">Simpan</button>
           </form>
         </div>
       </div>
-    </div>
 
-    <!-- Modal Histori Mahasiswa -->
-    <div v-if="showModalHistoriMahasiswa" class="modal-overlay" @click="closeModal">
-      <div class="modal-content" @click.stop>
-        <h3 class="modal-title">Histori Presensi Mahasiswa</h3>
-        <table class="presensi-table">
-          <thead>
-            <tr>
-              <th>Nama Mahasiswa</th>
-              <th>NIM</th>
-              <th>Status</th>
-              <th>Tanggal</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="(presensi, index) in selectedHistoriMahasiswa" :key="index">
-              <td>{{ presensi.namaMahasiswa }}</td>
-              <td>{{ presensi.nim }}</td>
-              <td>
-                <div class="status-buttons">
-                  <button
-                    class="status-button"
-                    :class="{'active': presensi.status === 'Hadir'}"
-                    @click="updateStatus(presensi, 'Hadir')"
-                  >Hadir</button>
-                  <button
-                    class="status-button"
-                    :class="{'active': presensi.status === 'Alpa'}"
-                    @click="updateStatus(presensi, 'Alpa')"
-                  >Alpa</button>
-                  <button
-                    class="status-button"
-                    :class="{'active': presensi.status === 'Izin'}"
-                    @click="updateStatus(presensi, 'Izin')"
-                  >Izin</button>
-                  <button
-                    class="status-button"
-                    :class="{'active': presensi.status === 'Sakit'}"
-                    @click="updateStatus(presensi, 'Sakit')"
-                  >Sakit</button>
-                </div>
-              </td>
-              <td>{{ presensi.tanggal }}</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-    <!-- Modal Input Nilai -->
-    <div v-if="showModalInputNilai" class="modal-overlay" @click="closeModal">
-      <div class="modal-content" @click.stop>
-        <div class="modal-header">
-          <h3 class="modal-title">Input Nilai Mahasiswa</h3>
-          <button @click="toggleEditAll" :class="[editAll ? 'save-button' : 'edit-button']">
-            {{ editAll ? 'Simpan Semua' : 'Edit Semua' }}
-          </button>
+      <!-- Modal Histori Mahasiswa -->
+      <div v-if="showModalHistoriMahasiswa" class="modal-overlay" @click="closeModal">
+        <div class="modal-content" @click.stop>
+          <h3 class="modal-title">Histori Presensi Mahasiswa</h3>
+          <table class="presensi-table">
+            <thead>
+              <tr>
+                <th>Nama Mahasiswa</th>
+                <th>NIM</th>
+              </tr></thead>
+            <tbody>
+              <tr v-for="(presensi, index) in selectedHistoriMahasiswa" :key="index">
+                <td>{{ presensi.nama_mahasiswa }}</td>
+                <td>{{ presensi.nim }}</td>
+                <td>
+                  <div class="status-buttons">
+                    <button
+                      class="status-button rounded-button"
+                      :class="{'active': presensi.status === 'Present'}"
+                      @click="updateStatus(presensi, 'Present')"
+                    >Hadir</button>
+                    <button
+                      class="status-button rounded-button"
+                      :class="{'active': presensi.status === 'Late'}"
+                      @click="updateStatus(presensi, 'Late')"
+                    >Terlambat</button>
+                    <button
+                      class="status-button rounded-button"
+                      :class="{'active': presensi.status === 'Absent'}"
+                      @click="updateStatus(presensi, 'Absent')"
+                    >Alpa</button>
+                    <button
+                      class="status-button rounded-button"
+                      :class="{'active': presensi.status === 'Excused'}"
+                      @click="updateStatus(presensi, 'Excused')"
+                    >Izin</button>
+                    <button
+                      class="status-button rounded-button"
+                      :class="{'active': presensi.status === 'Belum Presensi'}"
+                      @click="updateStatus(presensi, 'Belum Presensi')"
+                    >Belum Presensi</button>
+                  </div>
+                </td>
+                <td>{{ presensi.date || 'N/A' }}</td>
+              </tr>
+            </tbody>
+          </table>
         </div>
-        <table class="nilai-table">
-          <thead>
-            <tr>
-              <th>Nama Mahasiswa</th>
-              <th>NIM</th>
-              <th>Nilai UTS</th>
-              <th>Nilai UAS</th>
-              <th>Aksi</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="(nilai, index) in selectedInputNilai" :key="index">
-              <td>{{ nilai.namaMahasiswa }}</td>
-              <td>{{ nilai.nim }}</td>
-              <td><input type="text" v-model="nilai.uts" :readonly="!nilai.isEditing" class="nilai-input" /></td>
-              <td><input type="text" v-model="nilai.uas" :readonly="!nilai.isEditing" class="nilai-input" /></td>
-              <td>
-                <button @click="toggleEditNilai(nilai)" :class="[nilai.isEditing ? 'save-button' : 'edit-button']">
-                  {{ nilai.isEditing ? 'Simpan' : 'Edit' }}
-                </button>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-        <button @click="submitNilai" class="submit-button">Submit Nilai</button>
+      </div>
+
+      <!-- Modal Input Nilai -->
+      <div v-if="showModalInputNilai" class="modal-overlay" @click="closeModal">
+        <div class="modal-content" @click.stop>
+          <div class="modal-header">
+            <h3 class="modal-title">Input Nilai Mahasiswa</h3>
+            <button @click="toggleEditAll" :class="[editAll ? 'save-button' : 'edit-button']">
+              {{ editAll ? 'Simpan Semua' : 'Edit Semua' }}
+            </button>
+          </div>
+          <table class="nilai-table">
+            <thead>
+              <tr>
+                <th>Nama Mahasiswa</th>
+                <th>NIM</th>
+                <th>Nilai UTS</th>
+                <th>Nilai UAS</th>
+                <th>Aksi</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="(mahasiswa, index) in selectedNilaiMahasiswa" :key="index">
+                <td>{{ mahasiswa.nama_mahasiswa }}</td>
+                <td>{{ mahasiswa.nim }}</td>
+                <td><input type="number" v-model="mahasiswa.uts_grade" :readonly="!mahasiswa.isEditing" class="nilai-input" /></td>
+                <td><input type="number" v-model="mahasiswa.uas_grade" :readonly="!mahasiswa.isEditing" class="nilai-input" /></td>
+                <td>
+                  <button @click="toggleEditNilai(mahasiswa)" :class="[mahasiswa.isEditing ? 'save-button' : 'edit-button']">
+                    {{ mahasiswa.isEditing ? 'Simpan' : 'Edit' }}
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+          <button @click="submitNilai" class="submit-button rounded-button">Submit Nilai</button>
+        </div>
       </div>
     </div>
   </div>
 </template>
 
+
 <script>
+import axios from 'axios';
+import moment from 'moment-timezone';
+import { useToast } from 'vue-toastification';
+
 export default {
   data() {
     return {
+      jadwalKuliah: [],
       selectedHari: 'all',
-      tableView: false,
       showModalBeritaAcara: false,
-      showModalHistoriMahasiswa: false,
-      showModalInputNilai: false,
+      selectedBeritaAcara: [],
       showIsiBeritaAcaraForm: false,
-      waktuOption: 'saatIni',
       formBeritaAcara: '',
       formCustomDate: '',
-      formCustomTime: '',
-      selectedBeritaAcara: [],
+      formCustomTimeStart: '',
+      formCustomTimeEnd: '',
+      showModalHistoriMahasiswa: false,
       selectedHistoriMahasiswa: [],
-      selectedInputNilai: [],
+      showModalInputNilai: false,
+      selectedNilaiMahasiswa: [],
       editAll: false,
-      jadwalKuliah: [
-        {
-          ruangKelas: 'A101',
-          hari: 'Senin',
-          waktu: '08:00 - 10:00',
-          kodeMataKuliah: 'IF101',
-          namaMataKuliah: 'Pemrograman Dasar',
-          semester: 1,
-          sks: 3,
-          namaDosen: 'Dr. John Doe',
-          hadir: false,
-          presensiHistory: ['2024-08-01 Hadir', '2024-08-08 Hadir'],
-          beritaAcara: [
-            {
-              judulMateri: 'Introduction to Programming',
-              hari: 'Senin',
-              tanggal: '2024-08-01',
-              waktu: '08:00 - 10:00',
-              historiPresensi: [
-                { namaMahasiswa: 'Budi', nim: '123456', status: 'Hadir', tanggal: '2024-08-01' },
-                { namaMahasiswa: 'Ani', nim: '789012', status: 'Alpa', tanggal: '2024-08-01' }
-              ]
-            },
-            {
-              judulMateri: 'Programming Basics',
-              hari: 'Senin',
-              tanggal: '2024-08-08',
-              waktu: '08:00 - 10:00',
-              historiPresensi: [
-                { namaMahasiswa: 'Budi', nim: '123456', status: 'Hadir', tanggal: '2024-08-08' },
-                { namaMahasiswa: 'Ani', nim: '789012', status: 'Alpa', tanggal: '2024-08-08' }
-              ]
-            }
-          ],
-          inputNilai: [
-            { namaMahasiswa: 'Budi', nim: '123456', uts: '', uas: '', isEditing: false },
-            { namaMahasiswa: 'Ani', nim: '789012', uts: '', uas: '', isEditing: false }
-          ]
-        },
-        {
-          ruangKelas: 'B202',
-          hari: 'Rabu',
-          waktu: '19:00 - 20:00',
-          kodeMataKuliah: 'IF102',
-          namaMataKuliah: 'Struktur Data',
-          semester: 2,
-          sks: 3,
-          namaDosen: 'Dr. Jane Smith',
-          hadir: false,
-          presensiHistory: ['2024-08-03 Masuk', '2024-08-10 Hadir'],
-          beritaAcara: [
-            {
-              judulMateri: 'Data Structures Basics',
-              hari: 'Rabu',
-              tanggal: '2024-08-03',
-              waktu: '19:00 - 20:00',
-              historiPresensi: [
-                { namaMahasiswa: 'Siti', nim: '345678', status: 'Hadir', tanggal: '2024-08-03' },
-                { namaMahasiswa: 'Andi', nim: '901234', status: 'Alpa', tanggal: '2024-08-03' }
-              ]
-            }
-          ],
-          inputNilai: [
-            { namaMahasiswa: 'Siti', nim: '345678', uts: '', uas: '', isEditing: false },
-            { namaMahasiswa: 'Andi', nim: '901234', uts: '', uas: '', isEditing: false }
-          ]
-        },
-        {
-          ruangKelas: 'B202',
-          hari: 'Selasa',
-          waktu: '19:00 - 20:00',
-          kodeMataKuliah: 'IF102',
-          namaMataKuliah: 'Struktur Data',
-          semester: 2,
-          sks: 3,
-          namaDosen: 'Dr. Jane Smith',
-          hadir: false,
-          presensiHistory: ['2024-08-03 Masuk', '2024-08-10 Hadir'],
-          beritaAcara: [
-            {
-              judulMateri: 'Advanced Data Structures',
-              hari: 'Selasa',
-              tanggal: '2024-08-10',
-              waktu: '19:00 - 20:00',
-              historiPresensi: [
-                { namaMahasiswa: 'Siti', nim: '345678', status: 'Hadir', tanggal: '2024-08-10' },
-                { namaMahasiswa: 'Andi', nim: '901234', status: 'Alpa', tanggal: '2024-08-10' }
-              ]
-            }
-          ],
-          inputNilai: [
-            { namaMahasiswa: 'Siti', nim: '345678', uts: '', uas: '', isEditing: false },
-            { namaMahasiswa: 'Andi', nim: '901234', uts: '', uas: '', isEditing: false }
-          ]
-        },
-        // Tambah data jadwal lainnya
-      ]
+      tableView: false,
+      selectedCourseId: null,
+      attendanceData: {}, 
+      allMahasiswa: [],
     };
   },
   computed: {
@@ -336,79 +253,279 @@ export default {
     }
   },
   methods: {
-    toggleView() {
-      this.tableView = !this.tableView;
+    setFilter(hari) {
+      this.selectedHari = hari;
       if (this.tableView) {
-        this.selectedHari = 'all'; // Reset filter when switching to table view
+        this.selectedHari = 'all';
       }
     },
-    openBeritaAcaraModal(jadwal) {
-      this.selectedBeritaAcara = jadwal.beritaAcara;
-      this.showModalBeritaAcara = true;
+    async fetchJadwalKuliah() {
+      const userId = this.$cookies.get('user_id');
+      try {
+        const response = await axios.get(`http://localhost:3000/courses/dosen/${userId}`);
+        this.jadwalKuliah = response.data.data.map(jadwal => ({
+          ruangKelas: jadwal.ruang_kelas,
+          hari: jadwal.hari,
+          waktu: jadwal.waktu,
+          kodeMataKuliah: jadwal.kode_mata_kuliah,
+          namaMataKuliah: jadwal.nama_mata_kuliah,
+          semester: jadwal.semester,
+          sks: jadwal.jumlah_sks,
+          courseId: jadwal.course_id
+        }));
+      } catch (error) {
+        console.error('Error fetching jadwal kuliah:', error);
+      }
+    },
+    async openBeritaAcaraModal(jadwal) {
+      const toast = useToast();
+      this.selectedCourseId = jadwal.courseId;
+      try {
+        const response = await axios.get(`http://localhost:3000/eventreports/${this.$cookies.get('user_id')}/${this.selectedCourseId}`);
+        this.selectedBeritaAcara = response.data.data.map(berita => ({
+          ...berita,
+          date: moment(berita.date).tz('Asia/Jakarta').format('YYYY-MM-DD'),
+          start_time: moment(berita.start_time, 'HH:mm:ss').tz('Asia/Jakarta').format('HH:mm:ss'),
+          end_time: moment(berita.end_time, 'HH:mm:ss').tz('Asia/Jakarta').format('HH:mm:ss')
+        }));
+        this.showModalBeritaAcara = true;
+
+        // Fetch all students for the course and active semester
+        const mahasiswaResponse = await axios.get(`http://localhost:3000/courserequests/course/${this.selectedCourseId}`);
+        this.allMahasiswa = mahasiswaResponse.data.data;
+
+      } catch (error) {
+        if (error.response && error.response.status === 404) {
+          toast.info('Tidak ada berita acara untuk mata kuliah ini.');
+        } else {
+          console.error('Error fetching berita acara:', error);
+        }
+      }
+    },
+    async showHistoriMahasiswa(reportId) {
+      const toast = useToast();
+      try {
+        const attendanceResponse = await axios.get(`http://localhost:3000/attendance/report/${reportId}/all`);
+        const attendanceList = attendanceResponse.data.data;
+
+        this.selectedHistoriMahasiswa = this.allMahasiswa.map(mahasiswa => {
+          const attendance = attendanceList.find(att => att.user_id === mahasiswa.user_id) || { status: 'Belum Presensi', attendance_id: null, date: null };
+          return {
+            ...mahasiswa,
+            status: attendance.status,
+            attendance_id: attendance.attendance_id,
+            date: attendance.date ? moment(attendance.date).tz('Asia/Jakarta').format('YYYY-MM-DD') : 'N/A',
+            report_id: reportId 
+          };
+        });
+
+        this.showModalHistoriMahasiswa = true;
+      } catch (error) {
+        console.error('Error fetching histori mahasiswa:', error);
+      }
+    },
+    async inputNilai(jadwal) {
+      const toast = useToast();
+      this.selectedCourseId = jadwal.courseId;
+      try {
+        // Fetch all students for the course and active semester
+        const mahasiswaResponse = await axios.get(`http://localhost:3000/courserequests/course/${this.selectedCourseId}`);
+        const allMahasiswa = mahasiswaResponse.data.data;
+
+        if (allMahasiswa.length === 0) {
+          toast.info('Tidak ada mahasiswa yang mengambil mata kuliah ini.');
+          return;
+        }
+
+        // Fetch existing grades for the course
+        const gradesResponse = await axios.get(`http://localhost:3000/grades/${this.selectedCourseId}`);
+        const existingGrades = gradesResponse.data.data;
+
+        // Combine the data
+        this.selectedNilaiMahasiswa = allMahasiswa.map(mahasiswa => {
+          const grade = existingGrades.find(g => g.user_id === mahasiswa.user_id);
+          return {
+            ...mahasiswa,
+            uts_grade: grade ? grade.uts_grade : '',
+            uas_grade: grade ? grade.uas_grade : '',
+            isEditing: false,
+            exists: !!grade // Tambahkan properti untuk melacak apakah nilai sudah ada
+          };
+        });
+
+        this.showModalInputNilai = true;
+      } catch (error) {
+        if (error.response && error.response.status === 404) {
+          toast.info('Tidak ada mahasiswa yang mengambil mata kuliah ini.');
+        } else {
+          console.error('Error fetching grades:', error);
+        }
+      }
+    },
+    toggleEditNilai(mahasiswa) {
+      mahasiswa.isEditing = !mahasiswa.isEditing;
+    },
+    toggleEditAll() {
+      this.editAll = !this.editAll;
+      this.selectedNilaiMahasiswa.forEach(mahasiswa => {
+        mahasiswa.isEditing = this.editAll;
+      });
     },
     toggleIsiBeritaAcaraForm() {
       this.showIsiBeritaAcaraForm = !this.showIsiBeritaAcaraForm;
     },
-    setWaktuOption(option) {
-      this.waktuOption = option;
-      if (option === 'saatIni') {
-        const now = new Date();
-        this.formCustomDate = now.toISOString().substr(0, 10);
-        this.formCustomTime = now.toTimeString().substr(0, 5);
+    async submitBeritaAcara() {
+      const toast = useToast();
+      try {
+        const formattedDate = moment.tz(this.formCustomDate, 'Asia/Jakarta').format('YYYY-MM-DD');
+        const formattedStartTime = moment.tz(this.formCustomTimeStart, 'Asia/Jakarta').format('HH:mm:ss');
+        const formattedEndTime = moment.tz(this.formCustomTimeEnd, 'Asia/Jakarta').format('HH:mm:ss');
+
+        await axios.post('http://localhost:3000/eventreports', {
+          course_id: this.selectedCourseId,
+          date: formattedDate,
+          start_time: formattedStartTime,
+          end_time: formattedEndTime,
+          description: this.formBeritaAcara
+        });
+
+        this.showModalBeritaAcara = false;
+        this.showIsiBeritaAcaraForm = false;
+        toast.success('Berita acara berhasil ditambahkan');
+        await this.openBeritaAcaraModal({ courseId: this.selectedCourseId });
+      } catch (error) {
+        console.error('Error submitting event report:', error);
       }
     },
-    showHistoriMahasiswa(berita) {
-      this.selectedHistoriMahasiswa = berita.historiPresensi;
-      this.showModalHistoriMahasiswa = true;
+    async submitNilai() {
+      const toast = useToast();
+      try {
+        for (let mahasiswa of this.selectedNilaiMahasiswa) {
+          console.log('Mahasiswa:', mahasiswa); // Logging
+
+          if (!mahasiswa.exists) {
+            console.log('Sending POST request for new grades'); // Tambahkan logging di sini
+            // Create new grades record
+            const response = await axios.post('http://localhost:3000/grades', {
+              user_id: mahasiswa.user_id,
+              course_id: this.selectedCourseId,
+              uts_grade: mahasiswa.uts_grade,
+              uas_grade: mahasiswa.uas_grade
+            });
+            console.log('Response from server (POST):', response.data); // Logging untuk POST
+          } else {
+            console.log('Sending PUT request for existing grades'); // Tambahkan logging di sini
+            // Update existing grades record
+            const response = await axios.put('http://localhost:3000/grades', {
+              user_id: mahasiswa.user_id,
+              course_id: this.selectedCourseId,
+              uts_grade: mahasiswa.uts_grade,
+              uas_grade: mahasiswa.uas_grade
+            });
+            console.log('Response from server (PUT):', response.data); // Logging untuk PUT
+          }
+        }
+        this.showModalInputNilai = false;
+        toast.success('Nilai berhasil disimpan');
+      } catch (error) {
+        console.error('Error submitting grades:', error.response ? error.response.data : error.message);
+      }
     },
-    inputNilai(jadwal) {
-      this.selectedInputNilai = jadwal.inputNilai;
-      this.showModalInputNilai = true;
-    },
-    toggleEditNilai(nilai) {
-      nilai.isEditing = !nilai.isEditing;
-    },
-    toggleEditAll() {
-      this.editAll = !this.editAll;
-      this.selectedInputNilai.forEach(nilai => {
-        nilai.isEditing = this.editAll;
-      });
-    },
-    submitBeritaAcara() {
-      // Logika untuk submit berita acara
-      this.closeModal();
-    },
-    submitNilai() {
-      // Logika untuk submit nilai
-      this.toggleEditAll(); // Reset all editing states
-      this.closeModal();
-    },
-    updateStatus(presensi, status) {
-      presensi.status = status;
+    async updateStatus(presensi, status) {
+      const toast = useToast();
+      try {
+        if (presensi.attendance_id) {
+          // Update status for existing attendance record
+          await axios.put(`http://localhost:3000/attendance/${presensi.attendance_id}/status`, { status });
+          presensi.status = status;
+        } else {
+          // Create new attendance record
+          const response = await axios.post('http://localhost:3000/attendance', {
+            report_id: presensi.report_id,
+            user_id: presensi.user_id,
+            status: status
+          });
+          presensi.attendance_id = response.data.data.attendance_id;
+          presensi.status = status;
+        }
+        toast.success('Status presensi berhasil diubah');
+      } catch (error) {
+        console.error('Error updating status:', error);
+      }
     },
     closeModal() {
       this.showModalBeritaAcara = false;
       this.showModalHistoriMahasiswa = false;
       this.showModalInputNilai = false;
+      this.showIsiBeritaAcaraForm = false;
       this.formBeritaAcara = '';
       this.formCustomDate = '';
-      this.formCustomTime = '';
+      this.formCustomTimeStart = '';
+      this.formCustomTimeEnd = '';
       this.selectedBeritaAcara = [];
       this.selectedHistoriMahasiswa = [];
-      this.selectedInputNilai = [];
+      this.selectedNilaiMahasiswa = [];
       this.showIsiBeritaAcaraForm = false;
-      this.waktuOption = 'saatIni';
       this.editAll = false;
+    },
+    toggleView() {
+      this.tableView = !this.tableView;
+      this.setFilter('all');
     }
+  },
+  mounted() {
+    this.fetchJadwalKuliah();
   }
 };
 </script>
 
 <style scoped>
-/* Tambahkan gaya CSS Anda di sini */
+/* Tambahkan semua gaya (CSS) yang diperlukan di sini */
+/* Tambahkan semua gaya (CSS) yang diperlukan di sini */
+.title-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.title {
+  background-color: white; /* Background putih */
+  border-radius: 10px; /* Sudut yang membulat */
+  padding: 10px 20px; /* Padding di dalam judul */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Bayangan halus */
+  text-align: center; /* Teks di tengah */
+  display: inline-block;
+}
+
+.container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  padding-bottom: 100px;
+  padding-inline: 30px;
+  width: 100%;
+  height: 80vh;
+  overflow: hidden;
+}
+
+.container-content {
+  background-color: white;
+  border-radius: 10px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+  width: 100%;
+  height: 100%;
+  overflow-y: auto;
+  max-width: 1500px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+}
+
 .main-wrapper {
   width: 100%;
-  position: relative;
 }
 
 .header-wrapper {
@@ -422,11 +539,12 @@ export default {
 .filter-buttons-container {
   display: flex;
   justify-content: center;
-  width: 80%;
+  width: 90%;
   overflow-x: auto;
   white-space: nowrap;
   margin-bottom: 20px;
-  padding-left: 300px; /* Tambahkan padding kiri */
+  padding-left: 180px; /* Tambahkan padding kiri */
+  padding-right: 10px; /* Tambahkan padding kanan */
   height: 40px; /* Tambahkan tinggi tetap */
 }
 
@@ -462,106 +580,88 @@ export default {
   padding-right: 10px; /* Tambahkan padding kanan untuk konsistensi */
 }
 
-.container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  flex-wrap: wrap;
-  padding: 20px;
-  width: 100%;
-  height: 80vh;
-  overflow: hidden;
-}
-
-.view-toggle {
-  background-color: transparent;
-  border: none;
+.presensi-icon {
   cursor: pointer;
-  width: 40px;
-  height: 40px;
-}
-
-.view-toggle img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.container-content {
-  background-color: white;
+  width: 35px;  /* Atur ukuran yang sesuai */
+  height: 35px; /* Atur ukuran yang sesuai */
+  object-fit: cover; /* Pastikan gambar menyesuaikan dengan kontainernya */
+  background-color: #3498db;
+  margin-bottom: 0px;
   border-radius: 10px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  padding: 20px;
-  width: 100%;
-  height: 100%;
-  overflow-y: auto;
-  max-width: 1500px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  position: relative;
-}
-
-.title {
-  text-align: center;
-  margin-bottom: 20px;
 }
 
 .cards-container {
   display: flex;
   flex-wrap: wrap;
-  gap: 20px;
+  gap: 10px;
   justify-content: center;
   width: 100%;
 }
 
 .card {
-  background-color: #f9f9f9;
-  border: 1px solid #ccc;
-  border-radius: 8px;
+  background-color: #ffffff;
+  border: 1px solid #dddddd;
   padding: 10px;
-  width: 300px;
-  cursor: pointer;
-  position: relative; /* Necessary for absolute positioning of children */
-  display: flex;
-  flex-direction: column; /* Tambahkan ini untuk tata letak kolom */
-  text-align: center; /* Pusatkan teks */
+  border-radius: 5px;
+  margin: 5px; /* Tambahkan margin untuk memastikan jarak horizontal */
 }
 
 .card-header {
-  position: relative;
-}
-
-.card-header h3 {
-  margin: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .divider {
   height: 1px;
   background-color: #ccc;
-  margin: 10px 0;
-  width: calc(100% - 20px);
-  margin-left: 10px;
-  margin-right: 10px;
+  margin: 2px 0;
+  width: 100%;
 }
 
-.card-body p {
-  margin: 5px 0;
+.card-body {
+  margin-top: 0px;
 }
 
 .aksi-button {
-  padding: 10px 20px;
+  margin-top: 10px;
+  padding: 10px;
+  background-color: #007bff;
+  color: white;
   border: none;
   cursor: pointer;
-  transition: background-color 0.3s;
-  margin: 5px 10px;
-  background-color: #3498db;
-  color: white;
-  border-radius: 20px; /* Rounded corners */
 }
 
-.aksi-button:hover {
-  background-color: #2980b9;
+.aksi-button + .aksi-button {
+  margin-left: 10px;
+}
+
+.table-container {
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table th, .table td {
+  padding: 10px;
+  text-align: left;
+  border: 1px solid #dddddd;
+  white-space: nowrap;
+}
+
+@media (max-width: 768px) {
+  .table th, .table td {
+    padding: 2px;
+    font-size: 12px;
+  }
+
+  .table th:last-child,
+  .table td:last-child {
+    display: none; /* Sembunyikan kolom aksi di layar kecil */
+  }
 }
 
 .modal-overlay {
@@ -577,115 +677,85 @@ export default {
 }
 
 .modal-content {
-  background-color: white;
+  background-color: #ffffff;
   padding: 20px;
-  border-radius: 8px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  width: 600px;
+  border-radius: 5px;
+  width: 90%;
+  max-width: 600px;
+  max-height: 80vh;
+  overflow-y: auto; /* Tambahkan properti ini */
 }
 
 .modal-title {
+  margin-bottom: 20px;
   text-align: center;
 }
 
+.form-group {
+  margin-bottom: 15px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 5px;
+}
+
+.form-group input,
+.form-group textarea {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #dddddd;
+  border-radius: 5px;
+}
+
 .submit-button {
-  padding: 10px 20px;
+  display: block;
+  width: 100%;
+  padding: 10px;
+  background-color: #007bff;
+  color: white;
   border: none;
   cursor: pointer;
-  transition: background-color 0.3s;
-  background-color: #007BFF;
+}
+
+.plus-button {
+  background-color: green;
   color: white;
 }
 
-.submit-button:hover {
-  background-color: #0056b3;
-}
-
-.table-container {
-  width: 100%;
-}
-
-.table {
+.berita-acara-table,
+.presensi-table,
+.nilai-table {
   width: 100%;
   border-collapse: collapse;
-  margin-top: 20px;
+  margin-top: 10px;
 }
 
-.table th, .table td {
-  padding: 8px;
-  text-align: left;
-  border-bottom: 1px solid #ccc;
-}
-
-.table th {
-  cursor: pointer;
-}
-
-.table tbody tr:nth-child(even) {
-  background-color: #f2f2f2;
-}
-
-.table tbody tr:nth-child(odd) {
-  background-color: #ffffff;
-}
-
-.detail-table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-.detail-table tr:nth-child(even) {
-  background-color: #f2f2f2;
-}
-
-.detail-table tr:nth-child(odd) {
-  background-color: #ffffff;
-}
-
-.detail-table td {
-  padding: 8px;
-}
-
-.berita-acara-table, .presensi-table, .nilai-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-bottom: 20px;
-}
-
-.berita-acara-table th, .berita-acara-table td, .presensi-table th, .presensi-table td, .nilai-table th, .nilai-table td {
+.berita-acara-table th,
+.presensi-table th,
+.nilai-table th,
+.berita-acara-table td,
+.presensi-table td,
+.nilai-table td {
   padding: 10px;
   text-align: left;
-  border-bottom: 1px solid #ccc;
+  border: 1px solid #dddddd;
 }
 
-.berita-acara-table tbody tr:nth-child(even),
-.presensi-table tbody tr:nth-child(even),
-.nilai-table tbody tr:nth-child(even) {
-  background-color: #f2f2f2;
-}
-
-.berita-acara-table tbody tr:nth-child(odd),
-.presensi-table tbody tr:nth-child(odd),
-.nilai-table tbody tr:nth-child(odd) {
-  background-color: #ffffff;
-}
-
-.status-buttons {
+.presensi-table .status-buttons {
   display: flex;
-  justify-content: space-between;
+  gap: 5px;
 }
 
 .status-button {
   padding: 5px 10px;
   border: none;
-  border-radius: 20px;
   cursor: pointer;
-  background-color: #ccc;
-  color: white;
 }
 
 .status-button.active {
   background-color: #007bff;
+  color: white;
 }
 
 .edit-button {
@@ -701,5 +771,9 @@ export default {
 .nilai-input {
   width: 50px;
   text-align: center;
+}
+
+.rounded-button {
+  border-radius: 20px;
 }
 </style>

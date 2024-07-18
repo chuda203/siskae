@@ -1,5 +1,7 @@
 <template>
-  <h1 class="title">Bimbingan</h1>
+  <h1 class="title-container">
+    <span class="title">Bimbingan</span>
+  </h1>  
   <div class="container">
     <div class="container-content">
       <div class="main-wrapper">
@@ -18,25 +20,18 @@
           </div>
         </div>
         <div v-if="!tableView" class="cards-container">
-          <div v-for="(item, index) in filteredBimbingan" :key="`bimbingan-${index}`" class="card">
+          <div v-for="(item, index) in filteredBimbingan" :key="`bimbingan-${index}`" class="card" @click="openStatusModal(item)">
             <div class="card-header">
-              <h3>{{ item.topic }}</h3>
-              <div class="divider"></div>
+              <p class="nama-mahasiswa">{{ item.nama_mahasiswa }}</p>
+              <button @click.stop="ajukanJadwal(item)" class="ajukan-jadwal-button">
+                <img src="../../../assets/ic_slot4.png" alt="Ajukan Jadwal" class="icon-slot" />
+              </button>
             </div>
+            <div class="divider"></div>
             <div class="card-body">
-              <p>{{ item.nama_mahasiswa }}</p>
-              <p>{{ item.NIM }}</p>
-              <p>{{ item.title }}</p>
-              <p>{{ item.status }}</p>
-              <button @click="ajukanJadwal(item)" class="ajukan-jadwal-button">Ajukan Jadwal</button>
-              <button @click="ubahStatus(item)" class="ubah-status-button">Ubah Status</button>
-              <div v-if="item.slotBimbingan && item.slotBimbingan.length">
-                <h4>Slot Bimbingan:</h4>
-                <div v-for="(slot, idx) in item.slotBimbingan" :key="`slot-${idx}`" class="slot-card">
-                  <p>{{ slot.date }} - {{ slot.start_time }} - {{ slot.end_time }} - {{ slot.room }}</p>
-                  <button @click="hapusJadwal(slot.slot_id)" class="hapus-jadwal-button">Hapus Jadwal</button>
-                </div>
-              </div>
+              <p class="nim">{{ item.NIM }}</p>
+              <p class="topik">{{ item.topic }}</p>
+              <p class="status">{{ item.status }}</p>
             </div>
           </div>
         </div>
@@ -47,25 +42,42 @@
                 <th>Topik</th>
                 <th>Nama Mahasiswa</th>
                 <th>NIM</th>
-                <th>Judul</th>
                 <th>Status</th>
                 <th>Aksi</th>
               </tr>
             </thead>
             <tbody>
-              <tr v-for="(item, index) in filteredBimbingan" :key="`table-${index}`">
+              <tr v-for="(item, index) in filteredBimbingan" :key="`table-${index}`" @click="openStatusModal(item)">
                 <td>{{ item.topic }}</td>
                 <td>{{ item.nama_mahasiswa }}</td>
                 <td>{{ item.NIM }}</td>
-                <td>{{ item.title }}</td>
                 <td>{{ item.status }}</td>
                 <td>
-                  <button @click="ajukanJadwal(item)" class="ajukan-jadwal-button">Ajukan Jadwal</button>
-                  <button @click="ubahStatus(item)" class="ubah-status-button">Ubah Status</button>
+                  <button @click.stop="ajukanJadwal(item)" class="ajukan-jadwal-button">
+                    <img src="../../../assets/ic_slot4.png" alt="Ajukan Jadwal" class="icon-slot" />
+                  </button>
                 </td>
               </tr>
             </tbody>
           </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal Detail dan Ubah Status -->
+    <div v-if="showModalStatus" class="modal-overlay" @click="closeModal">
+      <div class="modal-content" @click.stop>
+        <h3 class="modal-title">Detail Bimbingan dan Ubah Status</h3>
+        <div class="detail-info">
+          <p><strong>Nama Mahasiswa:</strong> {{ selectedStudent?.nama_mahasiswa }}</p>
+          <p><strong>NIM:</strong> {{ selectedStudent?.NIM }}</p>
+          <p><strong>Topik:</strong> {{ selectedStudent?.topic }}</p>
+          <p><strong>Status:</strong> {{ selectedStudent?.status }}</p>
+        </div>
+        <div class="status-buttons">
+          <button @click="setStatus('ACC')" :class="{'active': formStatus.status === 'ACC'}">ACC</button>
+          <button @click="setStatus('Proses Bimbingan')" :class="{'active': formStatus.status === 'Proses Bimbingan'}">Proses Bimbingan</button>
+          <button @click="setStatus('Belum Bimbingan')" :class="{'active': formStatus.status === 'Belum Bimbingan'}">Belum Bimbingan</button>
         </div>
       </div>
     </div>
@@ -76,8 +88,8 @@
         <h3 class="modal-title">Ajukan Jadwal Bimbingan</h3>
         <div class="jadwal-cards-container">
           <div v-for="(jadwal, index) in slotBimbingan" :key="`slot-${index}`" class="jadwal-card">
-            <p><strong>Tanggal:</strong> {{ jadwal.date }}</p>
-            <p><strong>Waktu:</strong> {{ jadwal.start_time }} - {{ jadwal.end_time }}</p>
+            <p><strong></strong> {{ formatTanggal(jadwal.date) }}</p>
+            <p> {{ formatWaktu(jadwal.start_time, jadwal.end_time) }}<strong> WIB</strong></p>
             <p><strong>Ruang:</strong> {{ jadwal.room }}</p>
             <button @click="hapusJadwal(jadwal.slot_id)" class="hapus-jadwal-button">Hapus Jadwal</button>
           </div>
@@ -88,8 +100,12 @@
             <input type="date" id="tanggal" v-model="formJadwal.tanggal" required />
           </div>
           <div class="form-group">
-            <label for="waktu">Waktu</label>
-            <input type="time" id="waktu" v-model="formJadwal.waktu" required />
+            <label for="start_time">Waktu Mulai</label>
+            <input type="time" id="start_time" v-model="formJadwal.start_time" required />
+          </div>
+          <div class="form-group">
+            <label for="end_time">Waktu Selesai</label>
+            <input type="time" id="end_time" v-model="formJadwal.end_time" required />
           </div>
           <div class="form-group">
             <label for="ruang">Ruang</label>
@@ -99,25 +115,17 @@
         </form>
       </div>
     </div>
-
-    <!-- Modal Ubah Status -->
-    <div v-if="showModalStatus" class="modal-overlay" @click="closeModal">
-      <div class="modal-content" @click.stop>
-        <h3 class="modal-title">Ubah Status Bimbingan</h3>
-        <div class="status-buttons">
-          <button @click="setStatus('ACC')" :class="{'active': formStatus.status === 'ACC'}">ACC</button>
-          <button @click="setStatus('Proses Bimbingan')" :class="{'active': formStatus.status === 'Proses Bimbingan'}">Proses Bimbingan</button>
-          <button @click="setStatus('Belum Bimbingan')" :class="{'active': formStatus.status === 'Belum Bimbingan'}">Belum Bimbingan</button>
-        </div>
-        <button @click="submitStatus" class="submit-button">Ubah Status</button>
-      </div>
-    </div>
   </div>
 </template>
 
 <script>
 import axios from 'axios';
 import { inject } from 'vue';
+import moment from 'moment';
+import 'moment/locale/id'; // Import locale Indonesia
+import { useToast } from 'vue-toastification';
+
+moment.locale('id'); // Set locale ke Indonesia
 
 export default {
   data() {
@@ -128,7 +136,8 @@ export default {
       showModalStatus: false,
       formJadwal: {
         tanggal: '',
-        waktu: '',
+        start_time: '',
+        end_time: '',
         ruang: ''
       },
       formStatus: {
@@ -156,18 +165,6 @@ export default {
             ...item,
             type: this.mapTopicToType(item.topic) // Map topic to type for filtering
           }));
-          // Fetch slots for each guidance
-          for (let bimbingan of this.bimbinganList) {
-            try {
-              const slotResponse = await axios.get(`http://localhost:3000/guidanceslots/${dosenId}/${bimbingan.guidance_id}`);
-              if (slotResponse.data.success) {
-                bimbingan.slotBimbingan = slotResponse.data.data;
-              }
-            } catch (error) {
-              console.error(`Error fetching slot bimbingan for guidance_id ${bimbingan.guidance_id}:`, error);
-              bimbingan.slotBimbingan = []; // Set to empty array if error
-            }
-          }
         } else {
           console.error('Failed to fetch bimbingan list:', response.data.message);
         }
@@ -206,22 +203,20 @@ export default {
         this.filter = 'all'; // Reset filter when switching to table view
       }
     },
-    ubahStatus(item) {
+    async openStatusModal(item) {
       this.selectedStudent = item;
       this.formStatus.status = item.status;
       this.showModalStatus = true;
     },
-    setStatus(status) {
+    async setStatus(status) {
       this.formStatus.status = status;
-    },
-    async submitStatus() {
       try {
         const response = await axios.put(`http://localhost:3000/guidances/${this.selectedStudent.guidance_id}/status`, {
           status: this.formStatus.status
         });
         if (response.data.success) {
           this.selectedStudent.status = this.formStatus.status;
-          this.closeModal();
+          this.showModalStatus = false; // Close modal after status update
         } else {
           console.error('Failed to update status:', response.data.message);
         }
@@ -234,21 +229,39 @@ export default {
       await this.fetchSlotBimbingan(item.guidance_id);
       this.showModalJadwal = true;
     },
+    formatTanggal(date) {
+      return moment(date).format('dddd, DD-MM-YYYY');
+    },
+    formatWaktu(startTime, endTime) {
+      const start = moment(startTime, 'HH:mm:ss').format('HH:mm');
+      const end = moment(endTime, 'HH:mm:ss').format('HH:mm');
+      return `${start} - ${end}`;
+    },
     async submitJadwal() {
-      const { tanggal, waktu, ruang } = this.formJadwal;
+      const toast = useToast();
+      const { tanggal, start_time, end_time, ruang } = this.formJadwal;
       const { guidance_id } = this.selectedStudent;
-      
+
+      console.log('Submitting jadwal:', {
+        guidance_id,
+        date: tanggal,
+        start_time,
+        end_time,
+        room: ruang
+      });
+
       try {
         const response = await axios.post('http://localhost:3000/guidanceslots', {
           guidance_id,
           date: tanggal,
-          start_time: waktu,
-          end_time: waktu, // Assuming end_time is same as start_time for now
+          start_time,
+          end_time,
           room: ruang
         });
 
         if (response.data.success) {
           console.log('Slot bimbingan berhasil ditambahkan:', response.data.message);
+          toast.success(`Jadwal bimbingan berhasil diajukan untuk ${this.selectedStudent.nama_mahasiswa}`);
           // Refresh the slots for the selected guidance
           await this.fetchSlotBimbingan(guidance_id);
           this.closeModal();
@@ -260,6 +273,7 @@ export default {
       }
     },
     async hapusJadwal(slotId) {
+      const toast = useToast();
       console.log('Attempting to delete slot with ID:', slotId);
       if (!slotId) {
         console.error('Invalid slot ID:', slotId);
@@ -269,6 +283,7 @@ export default {
         const response = await axios.delete(`http://localhost:3000/guidanceslots/${slotId}`);
         if (response.data.success) {
           console.log('Slot bimbingan berhasil dihapus:', response.data.message);
+          toast.info(`Jadwal bimbingan berhasil dihapus`);
           // Refresh the slots for the selected guidance
           await this.fetchSlotBimbingan(this.selectedStudent.guidance_id);
         } else {
@@ -283,7 +298,8 @@ export default {
       this.showModalStatus = false;
       this.formJadwal = {
         tanggal: '',
-        waktu: '',
+        start_time: '',
+        end_time: '',
         ruang: ''
       };
       this.formStatus = {
@@ -317,7 +333,7 @@ export default {
   justify-content: space-between;
   align-items: center;
   width: 100%;
-  margin-bottom: 10px; /* Tambahkan margin bawah */
+  margin-bottom: 10px;
 }
 
 .filter-buttons-container {
@@ -327,13 +343,13 @@ export default {
   overflow-x: auto;
   white-space: nowrap;
   margin-bottom: 20px;
-  padding-left: 150px; /* Tambahkan padding kiri */
-  padding-right: 10px; /* Tambahkan padding kanan */
-  height: 40px; /* Tambahkan tinggi tetap */
+  padding-left: 150px;
+  padding-right: 10px;
+  height: 40px;
 }
 
 .filter-buttons-container::-webkit-scrollbar {
-  display: none; /* For Chrome, Safari, and Opera */
+  display: none;
 }
 
 .filter-button {
@@ -361,16 +377,16 @@ export default {
   align-items: center;
   margin-left: auto;
   padding-bottom: 20px;
-  padding-right: 10px; /* Tambahkan padding kanan untuk konsistensi */
+  padding-right: 10px;
 }
-
 
 .container {
   display: flex;
   justify-content: center;
   align-items: center;
   flex-wrap: wrap;
-  padding: 20px;
+  padding-bottom: 100px;
+  padding-inline: 30px;
   width: 100%;
   height: 80vh;
   overflow: hidden;
@@ -405,9 +421,19 @@ export default {
   position: relative;
 }
 
+.title-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
 .title {
-  text-align: center;
-  margin-bottom: 20px;
+  background-color: white; /* Background putih */
+  border-radius: 10px; /* Sudut yang membulat */
+  padding: 10px 20px; /* Padding di dalam judul */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Bayangan halus */
+  text-align: center; /* Teks di tengah */
+  display: inline-block;
 }
 
 .cards-container {
@@ -426,59 +452,59 @@ export default {
   width: 300px;
   cursor: pointer;
   position: relative; /* Necessary for absolute positioning of children */
-  display: flex;
-  flex-direction: column; /* Tambahkan ini untuk tata letak kolom */
-  text-align: center; /* Pusatkan teks */
 }
 
 .card-header {
-  position: relative;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
-.card-header h3 {
-  margin: 0;
+.card-header .nama-mahasiswa {
+  font-weight: bold;
+  margin: 0; /* Remove any default margin */
+}
+
+.ajukan-jadwal-button {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+
+.icon-slot {
+  cursor: pointer;
+  width: 35px;  /* Atur ukuran yang sesuai */
+  height: 35px; /* Atur ukuran yang sesuai */
+  object-fit: cover; /* Pastikan gambar menyesuaikan dengan kontainernya */
+  background-color: #3498db;
+  border-radius: 10px;
 }
 
 .divider {
   height: 1px;
   background-color: #ccc;
-  margin: 10px 0;
-  width: calc(100% - 20px);
-  margin-left: 10px;
-  margin-right: 10px;
+  margin: 0px; /* Adjust margin to reduce space */
+  width: 100%;
 }
 
-.card-body p {
-  margin: 5px 0;
-}
-
-.ajukan-jadwal-button,
-.ubah-status-button {
-  padding: 10px 20px;
-  border: none;
-  cursor: pointer;
-  transition: background-color 0.3s;
-  margin: 5px 5px;
-  background-color: #3498db;
-  color: white;
-  border-radius: 20px; /* Rounded corners */
-}
-
-.ajukan-jadwal-button:hover,
-.ubah-status-button:hover {
-  background-color: #2980b9;
+.card-body .nim {
+  margin-top: 5px;
 }
 
 .modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.5);
   display: flex;
   justify-content: center;
-  align-items: center;
+  align-items: center; /* Atur modal di tengah vertikal */
+  padding-top: 20px; /* Sesuaikan padding atas */
+  padding-bottom: 20px; /* Sesuaikan padding bawah */
+  background-color: rgba(0, 0, 0, 0.5); /* Tambahkan background semi-transparent */
+  position: fixed; /* Tetap di tempat saat scroll */
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1000; /* Pastikan modal berada di atas elemen lain */
 }
 
 .modal-content {
@@ -487,18 +513,87 @@ export default {
   border-radius: 8px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   width: 600px;
+  max-height: 95vh;
+  overflow-y: auto;
+  margin: 20px auto; /* Tambahkan margin di atas dan bawah */
+}
+
+@media (max-width: 768px) {
+  .modal-content {
+    width: 90%; /* Sesuaikan lebar modal di perangkat mobile */
+    padding: 10px;
+    margin: 20px 5%; /* Tambahkan margin di atas dan bawah pada perangkat mobile */
+  }
+
+  .modal-title {
+    font-size: 1.2em; /* Kurangi ukuran font judul modal di perangkat mobile */
+  }
+
+  .detail-info p, .status-buttons button, .form-group label, .form-group input, .submit-button {
+    font-size: 0.9em; /* Kurangi ukuran font di perangkat mobile */
+  }
+
+  .status-buttons {
+    flex-direction: column; /* Atur ulang tombol status menjadi vertikal di perangkat mobile */
+    align-items: stretch;
+  }
+
+  .status-buttons button {
+    margin-bottom: 10px; /* Tambahkan margin bawah pada tombol status di perangkat mobile */
+  }
 }
 
 .modal-title {
   text-align: center;
 }
 
+.detail-info {
+  margin-bottom: 20px;
+}
+
+.detail-info p {
+  margin: 5px 0;
+}
+
+.status-buttons {
+  display: flex;
+  justify-content: space-around;
+  margin-bottom: 20px;
+}
+
+.status-buttons button {
+  padding: 10px 20px;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  background-color: #ddd;
+  color: black;
+  margin: 0 5px;
+  border-radius: 20px;
+}
+
+.status-buttons button.active {
+  background-color: #007BFF;
+  border-radius: 20px;
+  border: none;
+  color: white;
+}
+
 .jadwal-cards-container {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap; /* Ubah ke nowrap untuk scroll horizontal */
   gap: 10px;
-  justify-content: center;
-  margin-bottom: 20px;
+  justify-content: flex-start; /* Atur ulang justify-content */
+  overflow-x: auto; /* Tambahkan scroll horizontal */
+}
+
+.jadwal-cards-container::-webkit-scrollbar {
+  display: none; /* Sembunyikan scrollbar pada Chrome, Safari, dan Opera */
+}
+
+.jadwal-cards-container {
+  -ms-overflow-style: none; /* Sembunyikan scrollbar pada IE dan Edge */
+  scrollbar-width: none; /* Sembunyikan scrollbar pada Firefox */
 }
 
 .jadwal-card {
@@ -506,11 +601,26 @@ export default {
   border: 1px solid #ccc;
   border-radius: 8px;
   padding: 10px;
-  width: 150px;
+  min-width: 150px;
 }
 
 .jadwal-card p {
   margin: 5px 0;
+}
+
+.hapus-jadwal-button {
+  padding: 10px 20px;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  background-color: #e74c3c;
+  color: white;
+  border-radius: 20px;
+  margin-top: 10px;
+}
+
+.hapus-jadwal-button:hover {
+  background-color: #c0392b;
 }
 
 .form-group {
@@ -538,53 +648,10 @@ export default {
   background-color: #007BFF;
   color: white;
   border-radius: 20px;
-  border: none;
 }
 
 .submit-button:hover {
   background-color: #0056b3;
-  border-radius: 20px;
-  border: none;
-}
-
-.hapus-jadwal-button {
-  padding: 10px 20px;
-  border: none;
-  cursor: pointer;
-  transition: background-color 0.3s;
-  background-color: #e74c3c;
-  color: white;
-  border-radius: 20px; /* Rounded corners */
-  margin-top: 10px; /* Margin at the top to separate from other content */
-}
-
-.hapus-jadwal-button:hover {
-  background-color: #c0392b;
-}
-
-.status-buttons {
-  display: flex;
-  justify-content: space-around;
-  margin-bottom: 20px;
-}
-
-.status-buttons button {
-  padding: 10px 20px;
-  border: none;
-  cursor: pointer;
-  transition: background-color 0.3s;
-  background-color: #ddd;
-  color: black;
-  margin: 0 5px; /* Adjust the margin to control the spacing */
-  border-radius: 20px;
-  border: none;
-}
-
-.status-buttons button.active {
-  background-color: #007BFF;
-  border-radius: 20px;
-  border: none;
-  color: white;
 }
 
 .table-container {
@@ -634,15 +701,15 @@ export default {
 
 /* Hide scrollbar but still allow scrolling */
 body {
-  overflow: hidden; /* Hide the scrollbar */
+  overflow: hidden;
 }
 
 .container-content::-webkit-scrollbar {
-  display: none; /* For Chrome, Safari, and Opera */
+  display: none;
 }
 
 .container-content {
-  -ms-overflow-style: none;  /* For Internet Explorer and Edge */
-  scrollbar-width: none;  /* For Firefox */
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
 </style>
