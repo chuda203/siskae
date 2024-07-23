@@ -133,6 +133,7 @@
               <tr>
                 <th>Nama Mahasiswa</th>
                 <th>NIM</th>
+                <th>Presensi</th>
               </tr></thead>
             <tbody>
               <tr v-for="(presensi, index) in selectedHistoriMahasiswa" :key="index">
@@ -262,7 +263,7 @@ export default {
     async fetchJadwalKuliah() {
       const userId = this.$cookies.get('user_id');
       try {
-        const response = await axios.get(`http://localhost:3000/courses/dosen/${userId}`);
+        const response = await axios.get(`https://unified-atom-423009-a1.et.r.appspot.com/courses/dosen/${userId}`);
         this.jadwalKuliah = response.data.data.map(jadwal => ({
           ruangKelas: jadwal.ruang_kelas,
           hari: jadwal.hari,
@@ -281,7 +282,7 @@ export default {
       const toast = useToast();
       this.selectedCourseId = jadwal.courseId;
       try {
-        const response = await axios.get(`http://localhost:3000/eventreports/${this.$cookies.get('user_id')}/${this.selectedCourseId}`);
+        const response = await axios.get(`https://unified-atom-423009-a1.et.r.appspot.com/eventreports/${this.$cookies.get('user_id')}/${this.selectedCourseId}`);
         this.selectedBeritaAcara = response.data.data.map(berita => ({
           ...berita,
           date: moment(berita.date).tz('Asia/Jakarta').format('YYYY-MM-DD'),
@@ -291,7 +292,7 @@ export default {
         this.showModalBeritaAcara = true;
 
         // Fetch all students for the course and active semester
-        const mahasiswaResponse = await axios.get(`http://localhost:3000/courserequests/course/${this.selectedCourseId}`);
+        const mahasiswaResponse = await axios.get(`https://unified-atom-423009-a1.et.r.appspot.com/courserequests/course/${this.selectedCourseId}`);
         this.allMahasiswa = mahasiswaResponse.data.data;
 
       } catch (error) {
@@ -305,7 +306,7 @@ export default {
     async showHistoriMahasiswa(reportId) {
       const toast = useToast();
       try {
-        const attendanceResponse = await axios.get(`http://localhost:3000/attendance/report/${reportId}/all`);
+        const attendanceResponse = await axios.get(`https://unified-atom-423009-a1.et.r.appspot.com/attendance/report/${reportId}/all`);
         const attendanceList = attendanceResponse.data.data;
 
         this.selectedHistoriMahasiswa = this.allMahasiswa.map(mahasiswa => {
@@ -329,7 +330,7 @@ export default {
       this.selectedCourseId = jadwal.courseId;
       try {
         // Fetch all students for the course and active semester
-        const mahasiswaResponse = await axios.get(`http://localhost:3000/courserequests/course/${this.selectedCourseId}`);
+        const mahasiswaResponse = await axios.get(`https://unified-atom-423009-a1.et.r.appspot.com/courserequests/course/${this.selectedCourseId}`);
         const allMahasiswa = mahasiswaResponse.data.data;
 
         if (allMahasiswa.length === 0) {
@@ -338,7 +339,7 @@ export default {
         }
 
         // Fetch existing grades for the course
-        const gradesResponse = await axios.get(`http://localhost:3000/grades/${this.selectedCourseId}`);
+        const gradesResponse = await axios.get(`https://unified-atom-423009-a1.et.r.appspot.com/grades/${this.selectedCourseId}`);
         const existingGrades = gradesResponse.data.data;
 
         // Combine the data
@@ -381,7 +382,7 @@ export default {
         const formattedStartTime = moment.tz(this.formCustomTimeStart, 'Asia/Jakarta').format('HH:mm:ss');
         const formattedEndTime = moment.tz(this.formCustomTimeEnd, 'Asia/Jakarta').format('HH:mm:ss');
 
-        await axios.post('http://localhost:3000/eventreports', {
+        await axios.post('https://unified-atom-423009-a1.et.r.appspot.com/eventreports', {
           course_id: this.selectedCourseId,
           date: formattedDate,
           start_time: formattedStartTime,
@@ -406,7 +407,7 @@ export default {
           if (!mahasiswa.exists) {
             console.log('Sending POST request for new grades'); // Tambahkan logging di sini
             // Create new grades record
-            const response = await axios.post('http://localhost:3000/grades', {
+            const response = await axios.post('https://unified-atom-423009-a1.et.r.appspot.com/grades', {
               user_id: mahasiswa.user_id,
               course_id: this.selectedCourseId,
               uts_grade: mahasiswa.uts_grade,
@@ -416,7 +417,7 @@ export default {
           } else {
             console.log('Sending PUT request for existing grades'); // Tambahkan logging di sini
             // Update existing grades record
-            const response = await axios.put('http://localhost:3000/grades', {
+            const response = await axios.put('https://unified-atom-423009-a1.et.r.appspot.com/grades', {
               user_id: mahasiswa.user_id,
               course_id: this.selectedCourseId,
               uts_grade: mahasiswa.uts_grade,
@@ -436,11 +437,11 @@ export default {
       try {
         if (presensi.attendance_id) {
           // Update status for existing attendance record
-          await axios.put(`http://localhost:3000/attendance/${presensi.attendance_id}/status`, { status });
+          await axios.put(`https://unified-atom-423009-a1.et.r.appspot.com/attendance/${presensi.attendance_id}/status`, { status });
           presensi.status = status;
         } else {
           // Create new attendance record
-          const response = await axios.post('http://localhost:3000/attendance', {
+          const response = await axios.post('https://unified-atom-423009-a1.et.r.appspot.com/attendance', {
             report_id: presensi.report_id,
             user_id: presensi.user_id,
             status: status

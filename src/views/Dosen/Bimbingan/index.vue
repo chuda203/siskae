@@ -159,7 +159,7 @@ export default {
     async fetchBimbinganList() {
       const dosenId = this.auth.user_id; // Assume the auth state contains the user ID of the logged-in dosen
       try {
-        const response = await axios.get(`http://localhost:3000/guidances/${dosenId}`);
+        const response = await axios.get(`https://unified-atom-423009-a1.et.r.appspot.com/guidances/${dosenId}`);
         if (response.data.success) {
           this.bimbinganList = response.data.data.map(item => ({
             ...item,
@@ -175,7 +175,7 @@ export default {
     async fetchSlotBimbingan(guidanceId) {
       const dosenId = this.auth.user_id;
       try {
-        const response = await axios.get(`http://localhost:3000/guidanceslots/${dosenId}/${guidanceId}`);
+        const response = await axios.get(`https://unified-atom-423009-a1.et.r.appspot.com/guidanceslots/${dosenId}/${guidanceId}`);
         if (response.data.success) {
           this.slotBimbingan = response.data.data;
         } else {
@@ -211,7 +211,7 @@ export default {
     async setStatus(status) {
       this.formStatus.status = status;
       try {
-        const response = await axios.put(`http://localhost:3000/guidances/${this.selectedStudent.guidance_id}/status`, {
+        const response = await axios.put(`https://unified-atom-423009-a1.et.r.appspot.com/guidances/${this.selectedStudent.guidance_id}/status`, {
           status: this.formStatus.status
         });
         if (response.data.success) {
@@ -251,7 +251,7 @@ export default {
       });
 
       try {
-        const response = await axios.post('http://localhost:3000/guidanceslots', {
+        const response = await axios.post('https://unified-atom-423009-a1.et.r.appspot.com/guidanceslots', {
           guidance_id,
           date: tanggal,
           start_time,
@@ -280,7 +280,7 @@ export default {
         return;
       }
       try {
-        const response = await axios.delete(`http://localhost:3000/guidanceslots/${slotId}`);
+        const response = await axios.delete(`https://unified-atom-423009-a1.et.r.appspot.com/guidanceslots/${slotId}`);
         if (response.data.success) {
           console.log('Slot bimbingan berhasil dihapus:', response.data.message);
           toast.info(`Jadwal bimbingan berhasil dihapus`);

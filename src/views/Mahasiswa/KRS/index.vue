@@ -195,7 +195,7 @@ export default {
                 current_semester: currentSemester,
                 status: 'Pending'
               });
-              const response = await axios.post('http://localhost:3000/courserequests', {
+              const response = await axios.post('https://unified-atom-423009-a1.et.r.appspot.com/courserequests', {
                 user_id: userId,
                 course_id: mataKuliah.course_id,
                 lecturer_id: lecturerId,
@@ -241,7 +241,7 @@ export default {
             course_id: mataKuliah.course_id,
             user_id: userId
           });
-          await axios.delete(`http://localhost:3000/courserequests/${mataKuliah.course_id}/${userId}`);
+          await axios.delete(`https://unified-atom-423009-a1.et.r.appspot.com/courserequests/${mataKuliah.course_id}/${userId}`);
           mataKuliah.diambil = false;
           mataKuliah.terisi--;
           this.totalSKS -= mataKuliah.sks;
@@ -270,8 +270,8 @@ export default {
       }
       try {
         const [coursesResponse, takenCoursesResponse] = await Promise.all([
-          fetch(`http://localhost:3000/courses/${departmentId}`).then(response => response.json()),
-          fetch(`http://localhost:3000/courserequests/${userId}`).then(response => response.json())
+          fetch(`https://unified-atom-423009-a1.et.r.appspot.com/courses/${departmentId}`).then(response => response.json()),
+          fetch(`https://unified-atom-423009-a1.et.r.appspot.com/courserequests/${userId}`).then(response => response.json())
         ]);
 
         if (coursesResponse.success && takenCoursesResponse.success) {

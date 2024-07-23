@@ -37,7 +37,6 @@ export default {
           { name: 'KRS', path: '/acc-krs', icon: 'fas fa-book' },
           { name: 'Mata Kuliah', path: '/mata-kuliah', icon: 'fas fa-book' },
           { name: 'Publikasi', path: '/publikasi', icon: 'fas fa-pencil-alt' },
-          { name: 'Riwayat', path: '/riwayat', icon: 'fas fa-chart-line' },
           { name: 'Ujian', path: '/ujian', icon: 'fas fa-calendar' }
         ];
       } else {
@@ -53,7 +52,6 @@ export default {
       }
     };
 
-    
     const showHeader = computed(() => !route.meta.hideHeader);
     const showFooter = computed(() => !route.meta.hideFooter);
 

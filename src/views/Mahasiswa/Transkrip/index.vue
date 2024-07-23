@@ -254,7 +254,7 @@ export default {
     },
     fetchData() {
       const userId = Cookies.get('user_id');
-      axios.get(`http://localhost:3000/grades/user/${userId}`) // Ganti dengan URL endpoint Anda
+      axios.get(`https://unified-atom-423009-a1.et.r.appspot.com/grades/user/${userId}`) // Ganti dengan URL endpoint Anda
         .then(response => {
           const data = response.data.data;
           this.mataKuliah = data.map(course => ({
@@ -442,7 +442,7 @@ export default {
   border: 1px solid #ccc;
   border-radius: 8px;
   padding: 10px;
-  width: 300px;
+  width: 270px;
   cursor: pointer;
   position: relative;
 }

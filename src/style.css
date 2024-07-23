@@ -12,6 +12,7 @@ body {
   background-size: cover;  /* Menutupi seluruh layar */
   background-repeat: no-repeat;  /* Tidak mengulang gambar */
   background-position: center;  /* Pusatkan gambar */
+  background-attachment: fixed;
 }
 
 /* Menerapkan box-sizing ke semua elemen */

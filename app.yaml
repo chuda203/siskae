@@ -1,0 +1,12 @@
+runtime: nodejs18
+
+env_variables:
+  NODE_ENV: 'production'
+  MYSQL_HOST: '/cloudsql/unified-atom-423009-a1:asia-southeast2:siskae'
+  MYSQL_USER: 'root'
+  MYSQL_PASSWORD: 'admindong'
+  MYSQL_DATABASE: 'siskaev_21'
+
+handlers:
+  - url: /.*
+    script: auto

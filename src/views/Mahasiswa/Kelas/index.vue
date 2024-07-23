@@ -126,7 +126,7 @@ export default {
       const userId = VueCookies.get('user_id');
       const currentSemester = VueCookies.get('current_semester');
       try {
-        const response = await axios.get(`http://localhost:3000/schedule/${userId}/${currentSemester}`);
+        const response = await axios.get(`https://unified-atom-423009-a1.et.r.appspot.com/schedule/${userId}/${currentSemester}`);
         if (response.data.success) {
           this.jadwalKuliah = response.data.data;
         }
@@ -137,7 +137,7 @@ export default {
     async fetchEventReports() {
       const userId = VueCookies.get('user_id');
       try {
-        const response = await axios.get(`http://localhost:3000/activeeventreport/${userId}`);
+        const response = await axios.get(`https://unified-atom-423009-a1.et.r.appspot.com/activeeventreport/${userId}`);
         if (response.data.success) {
           this.eventReports = response.data.data;
         }
@@ -149,7 +149,7 @@ export default {
       const userId = VueCookies.get('user_id');
       for (let event of this.eventReports) {
         try {
-          const response = await axios.get(`http://localhost:3000/attendance/check/${event.report_id}/${userId}`);
+          const response = await axios.get(`https://unified-atom-423009-a1.et.r.appspot.com/attendance/check/${event.report_id}/${userId}`);
           if (response.data.success) {
             this.presensiStatus[event.report_id] = response.data.attended;
           }
@@ -206,7 +206,7 @@ export default {
       const event = this.eventReports.find(event => event.course_id === jadwal.course_id);
       if (event) {
         try {
-          await axios.post('http://localhost:3000/attendance', {
+          await axios.post('https://unified-atom-423009-a1.et.r.appspot.com/attendance', {
             report_id: event.report_id,
             user_id: userId,
             status: 'Present'

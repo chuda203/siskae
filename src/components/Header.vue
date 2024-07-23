@@ -13,13 +13,14 @@
       <img @click="showProfileModal = true" :src="profilePicture" alt="Profile Picture" class="profile-picture">
       <div v-if="showProfileModal" class="modal-overlay" @click="closeModal">
         <div class="modal" @click.stop>
+          <button class="modal-close" @click="closeModal">&times;</button>
           <h2>Profil</h2>
           <img :src="profilePicture" alt="Profile Picture" class="profile-modal-picture">
           <p><strong>Nama:</strong> {{ auth.name }}</p>
           <p><strong>Email:</strong> {{ auth.email }}</p>
           <p><strong>Role:</strong> {{ auth.role }}</p>
           <p><strong>User ID:</strong> {{ auth.user_id }}</p>
-          <button @click="logout">Logout</button>
+          <button class="logout-button" @click="logout">Logout</button>
         </div>
       </div>
     </div>
@@ -49,13 +50,14 @@
   <!-- Modal Profil untuk Mobile -->
   <div v-if="showProfileModal && isMobile" class="modal-overlay" @click="closeModal">
     <div class="modal" @click.stop>
+      <button class="modal-close" @click="closeModal">&times;</button>
       <h2>Profil</h2>
       <img :src="profilePicture" alt="Profile Picture" class="profile-modal-picture">
       <p><strong>Nama:</strong> {{ auth.name }}</p>
       <p><strong>Email:</strong> {{ auth.email }}</p>
       <p><strong>Role:</strong> {{ auth.role }}</p>
       <p><strong>User ID:</strong> {{ auth.user_id }}</p>
-      <button @click="logout">Logout</button>
+      <button class="logout-button" @click="logout">Logout</button>
     </div>
   </div>
 </template>
@@ -124,12 +126,14 @@ export default {
 </script>
 
 <style scoped>
+/* Styling untuk link aktif */
 .menu-link.router-link-exact-active,
 .menu-link.router-link-active {
   color: #3498db; /* Warna biru untuk menandai link aktif */
   font-weight: bold; /* Membuat teks lebih tebal */
 }
 
+/* Styling untuk header */
 .header {
   display: flex;
   align-items: center;
@@ -145,17 +149,20 @@ export default {
   transition: backdrop-filter 0.3s ease, background-color 0.3s ease;
 }
 
+/* Styling untuk header blur */
 .header-blur {
   backdrop-filter: blur(10px);
   background-color: rgba(30, 42, 56, 0.8);
 }
 
+/* Styling untuk navigasi menu */
 .nav-menu {
   flex-grow: 1;
   display: flex;
   justify-content: flex-start; /* Mengatur menu-list ke kiri */
 }
 
+/* Styling untuk daftar menu */
 .menu-list {
   display: flex;
   list-style: none;
@@ -165,11 +172,13 @@ export default {
   flex-grow: 1;
 }
 
+/* Styling untuk item menu */
 .menu-list li {
   margin: 0 10px;
   position: relative;
 }
 
+/* Styling untuk link menu */
 .menu-list li a {
   color: white;
   text-decoration: none;
@@ -178,11 +187,13 @@ export default {
   transition: color 0.3s ease;
 }
 
+/* Styling untuk hover dan focus pada link menu */
 .menu-list li a:hover,
 .menu-list li a:focus {
   color: #3498db; /* Warna biru untuk hover */
 }
 
+/* Styling untuk hover underline pada link menu */
 .menu-link-hover::before {
   content: '';
   position: absolute;
@@ -200,10 +211,12 @@ export default {
   width: 100%;
 }
 
+/* Styling untuk container profil */
 .profile-container {
   position: relative;
 }
 
+/* Styling untuk gambar profil */
 .profile-picture {
   height: 40px;
   width: 40px;
@@ -211,6 +224,7 @@ export default {
   cursor: pointer;
 }
 
+/* Styling untuk modal overlay */
 .modal-overlay {
   position: fixed;
   top: 0;
@@ -224,23 +238,69 @@ export default {
   z-index: 1000;
 }
 
+/* Styling untuk modal */
 .modal {
   background: white;
-  padding: 20px;
-  border-radius: 8px;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  padding: 30px;
+  border-radius: 10px;
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
   text-align: center;
+  max-width: 500px;
+  width: 90%;
+  position: relative;
+  animation: slideIn 0.3s ease-out;
 }
 
+/* Animasi untuk modal */
+@keyframes slideIn {
+  from {
+    transform: translateY(-30px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Styling untuk gambar profil di dalam modal */
 .profile-modal-picture {
-  height: 100px;
-  width: 100px;
+  height: 120px;
+  width: 120px;
   border-radius: 50%;
   margin-bottom: 20px;
+  border: 4px solid #3498db;
 }
 
+/* Styling untuk teks di dalam modal */
 .modal p, .modal h2, .modal button {
-  color: black;
+  color: #333;
+}
+
+/* Styling untuk tombol logout */
+.logout-button {
+  background-color: #3498db;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.logout-button:hover {
+  background-color: #2980b9;
+}
+
+/* Styling untuk tombol close modal */
+.modal-close {
+  background: none;
+  border: none;
+  font-size: 30px;
+  position: absolute;
+  top: 10px;
+  right: 20px;
+  cursor: pointer;
 }
 
 /* Bottom Navbar untuk Mobile */

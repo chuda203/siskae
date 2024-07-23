@@ -149,7 +149,7 @@ export default {
       }
 
       try {
-        const response = await axios.get(`http://localhost:3000/courserequests/lecturer/${lecturerId}`);
+        const response = await axios.get(`https://unified-atom-423009-a1.et.r.appspot.com/courserequests/lecturer/${lecturerId}`);
         console.log('Fetched course requests:', response.data);
 
         if (response.data.success && Array.isArray(response.data.data)) {
@@ -203,7 +203,7 @@ export default {
       const { nim, semester } = mahasiswa;
 
       try {
-        const response = await axios.put('http://localhost:3000/courserequests/approve', {
+        const response = await axios.put('https://unified-atom-423009-a1.et.r.appspot.com/courserequests/approve', {
           user_id: nim,
           current_semester: semester
         });

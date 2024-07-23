@@ -119,7 +119,7 @@ export default {
     },
     lihatSlotWaktu(item) {
       console.log(`Fetching slots for guidance ID: ${item.guidance_id}`); // Log request initiation
-      fetch(`http://localhost:3000/guidanceslots/student/${item.guidance_id}`)
+      fetch(`https://unified-atom-423009-a1.et.r.appspot.com/guidanceslots/student/${item.guidance_id}`)
         .then(response => {
           if (!response.ok) {
             if (response.status === 404) {
@@ -173,7 +173,7 @@ export default {
         return;
       }
 
-      fetch(`http://localhost:3000/guidances/student/${userId}`)
+      fetch(`https://unified-atom-423009-a1.et.r.appspot.com/guidances/student/${userId}`)
         .then(response => response.json())
         .then(data => {
           if (data.success) {
