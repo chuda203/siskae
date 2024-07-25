@@ -149,7 +149,7 @@ export default {
       const userId = VueCookies.get('user_id');
       for (let event of this.eventReports) {
         try {
-          const response = await axios.get(`https://unified-atom-423009-a1.et.r.appspot.com/student/attendance/check/${event.report_id}/${userId}`);
+          const response = await axios.get(`https://unified-atom-423009-a1.et.r.appspot.com/student/attendance/check/report_id=${event.report_id}&user_id=${userId}`);
           if (response.data.success) {
             this.presensiStatus[event.report_id] = response.data.attended;
           }
