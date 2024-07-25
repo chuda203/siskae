@@ -26,8 +26,7 @@
           <div v-for="(jadwal, index) in filteredJadwalKuliah" :key="`jadwal-${index}`" class="card" @click="openDetail(jadwal)">
             <div class="card-header">
               <h3>{{ jadwal.course_name }}</h3>
-              <img v-if="isPresensiActive(jadwal) && !isAlreadyPresensi(jadwal)" @click.stop="presensi(jadwal)" src="../../../assets/ic_presensi.png" alt="Presensi" class="presensi-icon" />
-              <img v-if="isAlreadyPresensi(jadwal)" src="../../../assets/ic_presensi.png" alt="Presensi" class="presensi-icon presensi-disabled" />
+              <img v-if="isPresensiActive(jadwal)" @click.stop="presensi(jadwal)" :src="getPresensiIcon(jadwal)" :alt="getPresensiAlt(jadwal)" :class="getPresensiClass(jadwal)" />
             </div>
             <div class="divider"></div>
             <div class="card-body">
@@ -159,21 +158,13 @@ export default {
       }
     },
     isPresensiActive(jadwal) {
-      console.log('Development mode:', this.developmentMode);
-      if (this.developmentMode) {
-        console.log('Development mode active, always enabling presensi.');
-        return true; // Selalu aktifkan presensi saat dalam mode pengembangan
-      }
       const now = moment().tz('Asia/Jakarta');
-      console.log("Current time: ", now.format('HH:mm:ss'));
       return this.eventReports.some(event => {
         const eventDate = moment(event.date).tz('Asia/Jakarta').format('YYYY-MM-DD');
         const nowDate = now.format('YYYY-MM-DD');
         const startTime = moment(`${eventDate} ${event.start_time}`, 'YYYY-MM-DD HH:mm:ss').tz('Asia/Jakarta');
         const endTime = moment(`${eventDate} ${event.end_time}`, 'YYYY-MM-DD HH:mm:ss').tz('Asia/Jakarta');
 
-        console.log(`Checking event: ${event.course_id}, Date: ${eventDate}, Now Date: ${nowDate}, Start Time: ${startTime.format('HH:mm:ss')}, End Time: ${endTime.format('HH:mm:ss')}`);
-        
         return event.course_id === jadwal.course_id &&
           eventDate === nowDate &&
           startTime.isSameOrBefore(now) &&
@@ -186,6 +177,15 @@ export default {
         return this.presensiStatus[event.report_id] || false;
       }
       return false;
+    },
+    getPresensiIcon(jadwal) {
+      return this.isAlreadyPresensi(jadwal) ? '../../../assets/ic_presensi.png' : '../../../assets/ic_presensi.png';
+    },
+    getPresensiAlt(jadwal) {
+      return this.isAlreadyPresensi(jadwal) ? 'Presensi' : 'Presensi';
+    },
+    getPresensiClass(jadwal) {
+      return this.isAlreadyPresensi(jadwal) ? 'presensi-icon presensi-disabled' : 'presensi-icon';
     },
     toggleView() {
       this.tableView = !this.tableView;
