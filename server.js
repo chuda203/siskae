@@ -49,36 +49,6 @@ db.connect(err => {
 //   timezone: '+07:00'
 // });
 
-
-// POV student, get slot bimbingan
-app.get('/guidanceslots/student', (req, res) => {
-  const guidanceId = req.query.guidance_id || req.path.split('/')[3];
-  console.log(`Received request for guidance ID: ${guidanceId}`);
-
-  const query = `
-    SELECT 
-      gs.slot_id,
-      gs.date, 
-      gs.start_time, 
-      gs.end_time, 
-      gs.room 
-    FROM 
-      guidanceslots gs
-    WHERE 
-      gs.guidance_id = ?`;
-
-  db.query(query, [guidanceId], (err, results) => {
-    if (err) {
-      console.error('Database query error:', err);
-      return res.status(500).json({ success: false, message: 'Internal server error' });
-    }
-    if (results.length === 0) {
-      return res.status(404).json({ success: false, message: 'No guidance slots found' });
-    }
-    res.json({ success: true, data: results });
-  });
-});
-
 // POV dosen dan mahasiswa, login
 app.post('/login', async (req, res) => {
   const { email, password, role } = req.body;
@@ -141,7 +111,7 @@ app.post('/login', async (req, res) => {
 });
 
 // POV mahasiswa, get bimbingan 
-app.get('/guidances/student', (req, res) => {
+app.get('/student/guidances', (req, res) => {
   const userId = req.query.user_id; // Mengambil user_id dari query parameters
   console.log(`Received request for user ID: ${userId}`);
 
@@ -174,8 +144,38 @@ app.get('/guidances/student', (req, res) => {
   });
 });
 
+// POV mahasiswa, get slot bimbingan
+app.get('/student/guidanceslots', (req, res) => {
+  const guidanceId = req.query.guidance_id || req.path.split('/')[3];
+  console.log(`Received request for guidance ID: ${guidanceId}`);
+
+  const query = `
+    SELECT 
+      gs.slot_id,
+      gs.date, 
+      gs.start_time, 
+      gs.end_time, 
+      gs.room 
+    FROM 
+      guidanceslots gs
+    WHERE 
+      gs.guidance_id = ?`;
+
+  db.query(query, [guidanceId], (err, results) => {
+    if (err) {
+      console.error('Database query error:', err);
+      return res.status(500).json({ success: false, message: 'Internal server error' });
+    }
+    if (results.length === 0) {
+      return res.status(404).json({ success: false, message: 'No guidance slots found' });
+    }
+    res.json({ success: true, data: results });
+  });
+});
+
+
 // POV mahasiswa, get jadwal kuliah
-app.get('/schedule/student', (req, res) => {
+app.get('/student/schedule', (req, res) => {
   const { user_id, semester } = req.query;
 
   if (!user_id || !semester) {
