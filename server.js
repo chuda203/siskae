@@ -3,6 +3,7 @@ import bodyParser from 'body-parser';
 import mysql from 'mysql';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
+import moment from 'moment-timezone';
 
 const app = express();
 const port = process.env.PORT || 8080;
@@ -49,7 +50,7 @@ db.connect(err => {
 // });
 
 
-// Endpoint bermasalah, POV student, get slot bimbingan
+// POV student, get slot bimbingan
 app.get('/guidanceslots/student', (req, res) => {
   const guidanceId = req.query.guidance_id || req.path.split('/')[3];
   console.log(`Received request for guidance ID: ${guidanceId}`);
@@ -173,42 +174,7 @@ app.get('/guidances/student', (req, res) => {
   });
 });
 
-
-// app.get('/guidances/student/:user_id', (req, res) => {
-//   const userId = req.params.user_id;
-//   console.log(`Received request for user ID: ${userId}`);
-
-//   const query = `
-//     SELECT 
-//       g.guidance_id,
-//       u.name AS nama_dosen, 
-//       d.NIDN, 
-//       g.topic, 
-//       g.title, 
-//       g.status 
-//     FROM 
-//       guidances g
-//     JOIN 
-//       users u ON g.dosen_id = u.user_id
-//     JOIN 
-//       dosen d ON g.dosen_id = d.user_id
-//     JOIN 
-//       mahasiswa m ON g.user_id = m.user_id
-//     WHERE 
-//       g.user_id = ?`;
-
-//   db.query(query, [userId], (err, results) => {
-//     if (err) {
-//       console.error('Database query error:', err);
-//       return res.status(500).json({ success: false, message: 'Internal server error' });
-//     }
-//     console.log('Query results:', results);
-//     res.json({ success: true, data: results });
-//   });
-// });
-
 // POV mahasiswa, get jadwal kuliah
-
 app.get('/schedule/student', (req, res) => {
   const { user_id, semester } = req.query;
 
@@ -250,47 +216,7 @@ app.get('/schedule/student', (req, res) => {
   });
 });
 
-
-// app.get('/schedule/:user_id/:semester', (req, res) => {
-//   const { user_id, semester } = req.params;
-
-//   const query = `
-//     SELECT 
-//       cr.user_id,
-//       cr.course_id,
-//       c.name AS course_name,
-//       c.code AS course_code,
-//       c.semester,
-//       c.credits,
-//       cs.day,
-//       cs.start_time,
-//       cs.end_time,
-//       cs.room
-//     FROM 
-//       courserequests cr
-//     JOIN 
-//       courses c ON cr.course_id = c.course_id
-//     LEFT JOIN 
-//       classsessions cs ON c.course_id = cs.course_id
-//     WHERE 
-//       cr.user_id = ? 
-//       AND cr.current_semester = ? 
-//       AND cr.status = 'Approved'
-//     ORDER BY 
-//       cs.day, cs.start_time;
-//   `;
-
-//   db.query(query, [user_id, semester], (err, results) => {
-//     if (err) {
-//       return res.status(500).json({ success: false, message: 'Internal server error' });
-//     }
-//     res.json({ success: true, data: results });
-//   });
-// });
-
 // POV mahasiswa, get berita acara sesuai jam saat ini
-const moment = require('moment-timezone');
-
 app.get('/student/activeeventreport', (req, res) => {
   const userId = req.query.user_id;
   const localTime = moment();
@@ -325,43 +251,9 @@ app.get('/student/activeeventreport', (req, res) => {
   });
 });
 
-
-// app.get('/student/activeeventreport', (req, res) => {
-//   const userId = req.query.user_id;
-//   const currentTime = new Date().toTimeString().split(' ')[0];
-
-//   const query = `
-//     SELECT 
-//       er.report_id,
-//       er.course_id,
-//       er.description,
-//       er.date,
-//       er.start_time,
-//       er.end_time
-//     FROM 
-//       eventreports er
-//     JOIN 
-//       courses c ON er.course_id = c.course_id
-//     JOIN 
-//       courserequests cr ON c.course_id = cr.course_id
-//     WHERE 
-//       cr.user_id = ? 
-//       AND er.date = CURDATE() 
-//       AND er.start_time <= ? 
-//       AND er.end_time >= ?`;
-
-//   db.query(query, [userId, currentTime, currentTime], (err, results) => {
-//     if (err) {
-//       console.error('Database query error:', err);
-//       return res.status(500).json({ success: false, message: 'Internal server error', error: err });
-//     }
-//     res.json({ success: true, data: results });
-//   });
-// });
-
 // POV mahasiswa, get mata kuliah sesuai prodi
-app.get('/courses/:department_id', (req, res) => {
-  const departmentId = req.params.department_id;
+app.get('/student/courses/department', (req, res) => {
+  const departmentId = req.query.department_id;
   const query = `
     SELECT 
       c.course_id, 
@@ -390,8 +282,8 @@ app.get('/courses/:department_id', (req, res) => {
 });
 
 // POV mahasiswa, get status pengambilan krs
-app.get('/courserequests/:user_id', (req, res) => {
-  const userId = req.params.user_id;
+app.get('/student/courserequests', (req, res) => {
+  const userId = req.query.user_id;
   const query = `SELECT * FROM courserequests WHERE user_id = ?`;
   
   db.query(query, [userId], (err, results) => {
@@ -403,7 +295,7 @@ app.get('/courserequests/:user_id', (req, res) => {
 });
 
 // POV mahasiswa, ambil krs
-app.post('/courserequests', (req, res) => {
+app.post('/student/courserequests', (req, res) => {
   const { user_id, course_id, lecturer_id, current_semester, status } = req.body;
 
   console.log('Received course request:', {
@@ -425,8 +317,8 @@ app.post('/courserequests', (req, res) => {
 });
 
 // POV mahasiswa, batal ambil krs
-app.delete('/courserequests/:course_id/:user_id', (req, res) => {
-  const { course_id, user_id } = req.params;
+app.delete('/student/courserequests', (req, res) => {
+  const { course_id, user_id } = req.query;
 
   console.log('Received request to delete course request:', { course_id, user_id });
 
@@ -441,8 +333,8 @@ app.delete('/courserequests/:course_id/:user_id', (req, res) => {
 });
 
 // POV dosen, get request krs yang mengarah ke dia
-app.get('/courserequests/lecturer/:lecturerId', (req, res) => {
-  const lecturerId = req.params.lecturerId;
+app.get('/lecturer/courserequests', (req, res) => {
+  const lecturerId = req.query.lecturerId;
   const query = `
     SELECT 
       cr.request_id, 
@@ -472,21 +364,31 @@ app.get('/courserequests/lecturer/:lecturerId', (req, res) => {
 });
 
 // POV dosen, meng acc krs an
-app.put('/courserequests/approve', (req, res) => {
+app.put('/lecturer/courserequests/approve', (req, res) => {
   const { user_id, current_semester } = req.body;
+
+  console.log('Request Body:', req.body);
+  console.log('User ID:', user_id);
+  console.log('Current Semester:', current_semester);
 
   const query = `UPDATE courserequests SET status = 'Approved' WHERE user_id = ? AND current_semester = ?`;
   db.query(query, [user_id, current_semester], (err, results) => {
     if (err) {
-      return res.status(500).json({ success: false, message: 'Internal server error' });
+      console.error('Database query error:', err);
+      return res.status(500).json({ success: false, message: 'Internal server error', error: err });
     }
+  
+    if (results.affectedRows === 0) {
+      return res.status(404).json({ success: false, message: 'No course request found to approve' });
+    }
+  
     res.json({ success: true, message: 'Course request approved successfully' });
   });
-});
+  });
 
 // POV mahasiswa, get semua nilai untuk transkrip
-app.get('/grades/user/:user_id', (req, res) => {
-  const userId = req.params.user_id;
+app.get('/student/grades/', (req, res) => {
+  const userId = req.query.user_id;
   const query = `
     SELECT 
       c.name AS nama_mata_kuliah, 
@@ -515,8 +417,8 @@ app.get('/grades/user/:user_id', (req, res) => {
 });
 
 // POV mahasiswa, cek udah presensi belom
-app.get('/attendance/check/:report_id/:user_id', (req, res) => {
-  const { report_id, user_id } = req.params;
+app.get('/student/attendance/check', (req, res) => {
+  const { report_id, user_id } = req.query;
 
   const query = `SELECT * FROM attendance WHERE report_id = ? AND user_id = ?`;
 
@@ -530,7 +432,7 @@ app.get('/attendance/check/:report_id/:user_id', (req, res) => {
 });
 
 // POV mahasiswa, presensi mandiri
-app.post('/attendance', (req, res) => {
+app.post('/student/attendance', (req, res) => {
   const { report_id, user_id, status } = req.body;
 
   const query = `INSERT INTO attendance (report_id, user_id, status) VALUES (?, ?, ?)`;
@@ -546,8 +448,8 @@ app.post('/attendance', (req, res) => {
 });
 
 // POV dosen, get mahasiswa bimbingannya
-app.get('/guidances/:dosen_id', (req, res) => {
-  const dosenId = req.params.dosen_id;
+app.get('/lecturer/guidances', (req, res) => {
+  const dosenId = req.query.dosen_id;
   const query = `
     SELECT 
       g.guidance_id,
@@ -574,8 +476,8 @@ app.get('/guidances/:dosen_id', (req, res) => {
 });
 
 // POV dosen, hapus slot waktu bimbingan
-app.delete('/guidanceslots/:slot_id', (req, res) => {
-  const slotId = req.params.slot_id;
+app.delete('/lecturer/guidanceslots', (req, res) => {
+  const slotId = req.query.slot_id;
 
   const query = `
     DELETE FROM guidanceslots 
@@ -593,7 +495,7 @@ app.delete('/guidanceslots/:slot_id', (req, res) => {
 });
 
 // POV dosen, tambah slot waktu bimbingan
-app.post('/guidanceslots', (req, res) => {
+app.post('/lecturer/guidanceslots', (req, res) => {
   const { guidance_id, date, start_time, end_time, room } = req.body;
 
   console.log('Received data:', { guidance_id, date, start_time, end_time, room });
@@ -612,8 +514,8 @@ app.post('/guidanceslots', (req, res) => {
 });
 
 // POV dosen, get jadwal kuliah 
-app.get('/courses/dosen/:user_id', (req, res) => {
-  const userId = req.params.user_id;
+app.get('/lecturer/courses', (req, res) => {
+  const userId = req.query.user_id;
   const query = `
     SELECT 
       c.course_id, 
@@ -640,9 +542,9 @@ app.get('/courses/dosen/:user_id', (req, res) => {
 });
 
 // POV dosen, get berita acara sesuai mata kuliah
-app.get('/eventreports/:user_id/:course_id', (req, res) => {
-  const userId = req.params.user_id;
-  const courseId = req.params.course_id;
+app.get('/lecturer/eventreports', (req, res) => {
+  const userId = req.query.user_id;
+  const courseId = req.query.course_id;
   const query = `
     SELECT
       er.report_id, 
@@ -666,8 +568,8 @@ app.get('/eventreports/:user_id/:course_id', (req, res) => {
 });
 
 // POV dosen, get mahasiswa yg ikut matkul sesuai semester aktif
-app.get('/courserequests/course/:course_id', (req, res) => {
-  const courseId = req.params.course_id;
+app.get('/lecturer/courserequests/active', (req, res) => {
+  const courseId = req.query.course_id;
 
   const getActiveSemesterQuery = `SELECT semester FROM coursesemesters WHERE course_id = ? AND is_active = 1`;
 
@@ -708,8 +610,8 @@ app.get('/courserequests/course/:course_id', (req, res) => {
 });
 
 // POV dosen, get status presensi mahasiswa
-app.get('/attendance/report/:report_id/all', (req, res) => {
-  const reportId = req.params.report_id;
+app.get('/lecturer/attendances', (req, res) => {
+  const reportId = req.query.report_id;
 
   const query = `
     SELECT 
@@ -740,8 +642,8 @@ app.get('/attendance/report/:report_id/all', (req, res) => {
 });
 
 // POV dosen, ubah status presensi
-app.put('/attendance/:attendance_id/status', (req, res) => {
-  const attendanceId = req.params.attendance_id;
+app.put('/lecturer/attendances', (req, res) => {
+  const attendanceId = req.query.attendance_id;
   const { status } = req.body;
 
   const query = `UPDATE attendance SET status = ? WHERE attendance_id = ?`;
@@ -758,29 +660,40 @@ app.put('/attendance/:attendance_id/status', (req, res) => {
   });
 });
 
-// POV dosen, get nilai mahasiswa suatu matkul
-app.get('/eventreports/dosen/test', (req, res) => {
+// POV dosen, get riwayat mengajar based on eventreport
+app.get('/lecturer/eventreports/history', (req, res) => {
+  const dosenId = req.query.dosen_id;
+
+  if (!dosenId) {
+    return res.status(400).json({ success: false, message: 'Missing dosen_id' });
+  }
+
   const query = `
     SELECT 
-      description AS topik,
-      date AS tanggal,
-      start_time AS waktuMulai,
-      end_time AS waktuSelesai
+      er.description AS topik,
+      er.date AS tanggal,
+      er.start_time AS waktuMulai,
+      er.end_time AS waktuSelesai
     FROM 
-      eventreports
-    LIMIT 10`;
+      eventreports er
+    JOIN 
+      courses c ON er.course_id = c.course_id
+    WHERE 
+      c.dosen_id = ?`;
 
-  console.log('Executing test query');
-  db.query(query, (err, results) => {
+  console.log('Executing query for dosen_id:', dosenId);
+  db.query(query, [dosenId], (err, results) => {
     console.log('Query executed');
     if (err) {
       console.error('Database query error:', err);
       return res.status(500).json({ success: false, message: 'Internal server error', error: err });
     }
-    console.log('Test query results length:', results.length);
-    console.log('Test query results:', JSON.stringify(results, null, 2));
+
+    console.log('Query results:', results);
     if (results.length === 0) {
-      console.log('No data found in eventreports');
+      console.log('No data found for dosen_id:', dosenId);
+    } else {
+      console.log('Data found:', results);
     }
     res.json({ success: true, data: results });
   });
@@ -800,7 +713,7 @@ app.get('/testdb', (req, res) => {
 });
 
 // POV dosen, menambah nilai mahasiswa
-app.post('/grades', (req, res) => {
+app.post('/lecturer/grades', (req, res) => {
   const { user_id, course_id, uts_grade, uas_grade } = req.body;
 
   const utsGrade = uts_grade !== undefined && uts_grade !== '' ? uts_grade : 0;
@@ -822,53 +735,8 @@ app.post('/grades', (req, res) => {
   });
 });
 
-// POV dosen, cek keberadaan grades tiap mahasiswa
-app.get('/grades/check', (req, res) => {
-  const { user_id, course_id } = req.query;
-
-  const query = 'SELECT * FROM grades WHERE user_id = ? AND course_id = ?';
-
-  db.query(query, [user_id, course_id], (err, results) => {
-    if (err) {
-      console.error('Error executing query:', err);
-      return res.status(500).json({ success: false, message: 'Internal server error', error: err });
-    }
-
-    if (results.length > 0) {
-      res.json({ exists: true });
-    } else {
-      res.json({ exists: false });
-    }
-  });
-});
-
-// POV dosen, get nilai mahasiswa berdasarkan user_id dan course_id
-app.get('/grades/:user_id/:course_id', (req, res) => {
-  const userId = req.params.user_id;
-  const courseId = req.params.course_id;
-  const query = `
-    SELECT 
-      g.uts_grade, 
-      g.uas_grade
-    FROM 
-      grades g
-    WHERE 
-      g.user_id = ? AND g.course_id = ?`;
-
-  db.query(query, [userId, courseId], (err, results) => {
-    if (err) {
-      console.error('Error executing query:', err);
-      return res.status(500).json({ success: false, message: 'Internal server error', error: err });
-    }
-    if (results.length === 0) {
-      return res.status(404).json({ success: true, message: 'Nilai tidak ditemukan' });
-    }
-    res.json({ success: true, data: results[0] });
-  });
-});
-
 // POV dosen, ubah nilai mahasiswa
-app.put('/grades', (req, res) => {
+app.put('/lecturer/grades', (req, res) => {
   const { user_id, course_id, uts_grade, uas_grade } = req.body;
 
   const query = `
@@ -889,9 +757,9 @@ app.put('/grades', (req, res) => {
   });
 });
 
-// Endpoint to fetch grades for a specific course
-app.get('/grades/:course_id', (req, res) => {
-  const courseId = req.params.course_id;
+// POV dosen, get nilai semua mahasiswa berdasarkan course_id spesifik
+app.get('/lecturer/grades', (req, res) => {
+  const courseId = req.query.course_id;
   
   const query = `
     SELECT 
@@ -924,551 +792,6 @@ app.get('/grades/:course_id', (req, res) => {
     res.json({ success: true, data: results });
   });
 });
-
-
-// app.post('/users', (req, res) => {
-//   const { email, name, password, role } = req.body;
-
-//   const query = `INSERT INTO Users (email, name, password, role) VALUES (?, ?, ?, ?)`;
-//   db.query(query, [email, name, password, role], (err, results) => {
-//     if (err) {
-//       return res.status(500).json({ success: false, message: 'Internal server error' });
-//     }
-//     res.json({ success: true, message: 'User added successfully' });
-//   });
-// });
-
-// // SuperAdmin routes
-// app.get('/superadmins', (req, res) => {
-//   const query = `SELECT * FROM SuperAdmin`;
-//   db.query(query, (err, results) => {
-//     if (err) {
-//       return res.status(500).json({ success: false, message: 'Internal server error' });
-//     }
-//     res.json({ success: true, data: results });
-//   });
-// });
-
-// app.post('/superadmins', (req, res) => {
-//   const { user_id, additional_info } = req.body;
-
-//   const query = `INSERT INTO SuperAdmin (user_id, additional_info) VALUES (?, ?)`;
-//   db.query(query, [user_id, additional_info], (err, results) => {
-//     if (err) {
-//       return res.status(500).json({ success: false, message: 'Internal server error' });
-//     }
-//     res.json({ success: true, message: 'SuperAdmin added successfully' });
-//   });
-// });
-
-// // Departments routes
-// app.get('/departments', (req, res) => {
-//   const query = `SELECT * FROM Departments`;
-//   db.query(query, (err, results) => {
-//     if (err) {
-//       return res.status(500).json({ success: false, message: 'Internal server error' });
-//     }
-//     res.json({ success: true, data: results });
-//   });
-// });
-
-// app.post('/departments', (req, res) => {
-//   const { name, description } = req.body;
-
-//   const query = `INSERT INTO Departments (name, description) VALUES (?, ?)`;
-//   db.query(query, [name, description], (err, results) => {
-//     if (err) {
-//       return res.status(500).json({ success: false, message: 'Internal server error' });
-//     }
-//     res.json({ success: true, message: 'Department added successfully' });
-//   });
-// });
-
-// // Dosen routes
-// app.get('/dosen', (req, res) => {
-//   const query = `SELECT * FROM Dosen`;
-//   db.query(query, (err, results) => {
-//     if (err) {
-//       return res.status(500).json({ success: false, message: 'Internal server error' });
-//     }
-//     res.json({ success: true, data: results });
-//   });
-// });
-
-// app.post('/dosen', (req, res) => {
-//   const { user_id, NIDN, department, spesialisasi } = req.body;
-
-//   const query = `INSERT INTO Dosen (user_id, NIDN, department, spesialisasi) VALUES (?, ?, ?, ?)`;
-//   db.query(query, [user_id, NIDN, department, spesialisasi], (err, results) => {
-//     if (err) {
-//       return res.status(500).json({ success: false, message: 'Internal server error' });
-//     }
-//     res.json({ success: true, message: 'Dosen added successfully' });
-//   });
-// });
-
-// // Mahasiswa routes
-// app.get('/mahasiswa', (req, res) => {
-//   const query = `SELECT * FROM Mahasiswa`;
-//   db.query(query, (err, results) => {
-//     if (err) {
-//       return res.status(500).json({ success: false, message: 'Internal server error' });
-//     }
-//     res.json({ success: true, data: results });
-//   });
-// });
-
-// app.post('/mahasiswa', (req, res) => {
-//   const { user_id, NIM, lecturer_id, department, current_semester, credit_quota } = req.body;
-
-//   const query = `INSERT INTO Mahasiswa (user_id, NIM, lecturer_id, department, current_semester, credit_quota) VALUES (?, ?, ?, ?, ?, ?)`;
-//   db.query(query, [user_id, NIM, lecturer_id, department, current_semester, credit_quota], (err, results) => {
-//     if (err) {
-//       return res.status(500).json({ success: false, message: 'Internal server error' });
-//     }
-//     res.json({ success: true, message: 'Mahasiswa added successfully' });
-//   });
-// });
-
-// // AdminKaprodi routes
-// app.get('/adminkaprodi', (req, res) => {
-//   const query = `SELECT * FROM AdminKaprodi`;
-//   db.query(query, (err, results) => {
-//     if (err) {
-//       return res.status(500).json({ success: false, message: 'Internal server error' });
-//     }
-//     res.json({ success: true, data: results });
-//   });
-// });
-
-// app.post('/adminkaprodi', (req, res) => {
-//   const { user_id, department, additional_info } = req.body;
-
-//   const query = `INSERT INTO AdminKaprodi (user_id, department, additional_info) VALUES (?, ?, ?)`;
-//   db.query(query, [user_id, department, additional_info], (err, results) => {
-//     if (err) {
-//       return res.status(500).json({ success: false, message: 'Internal server error' });
-//     }
-//     res.json({ success: true, message: 'AdminKaprodi added successfully' });
-//   });
-// });
-
-// // Courses routes
-// app.get('/courses', (req, res) => {
-//   const query = `SELECT * FROM Courses`;
-//   db.query(query, (err, results) => {
-//     if (err) {
-//       return res.status(500).json({ success: false, message: 'Internal server error' });
-//     }
-//     res.json({ success: true, data: results });
-//   });
-// });
-
-// app.post('/courses', (req, res) => {
-//   const { program_id, name, code, semester, credits, dosen_id } = req.body;
-
-//   const query = `INSERT INTO Courses (program_id, name, code, semester, credits, dosen_id) VALUES (?, ?, ?, ?, ?, ?)`;
-//   db.query(query, [program_id, name, code, semester, credits, dosen_id], (err, results) => {
-//     if (err) {
-//       return res.status(500).json({ success: false, message: 'Internal server error' });
-//     }
-//     res.json({ success: true, message: 'Course added successfully' });
-//   });
-// });
-
-
-// // Endpoint for getting active semester by course_id
-// app.get('/courses/active-semester/:course_id', (req, res) => {
-//   const courseId = req.params.course_id;
-//   const query = `SELECT semester FROM CourseSemesters WHERE course_id = ? AND is_active = 1`;
-
-//   db.query(query, [courseId], (err, results) => {
-//     if (err) {
-//       console.error('Database query error:', err);
-//       return res.status(500).json({ success: false, message: 'Internal server error', error: err.message });
-//     }
-//     if (results.length > 0) {
-//       res.json({ success: true, active_semester: results[0].semester });
-//     } else {
-//       res.status(404).json({ success: false, message: 'Active semester not found for this course' });
-//     }
-//   });
-// });
-
-
-// // ClassSessions routes
-// app.get('/classsessions', (req, res) => {
-//   const query = `SELECT * FROM ClassSessions`;
-//   db.query(query, (err, results) => {
-//     if (err) {
-//       return res.status(500).json({ success: false, message: 'Internal server error' });
-//     }
-//     res.json({ success: true, data: results });
-//   });
-// });
-
-// app.post('/classsessions', (req, res) => {
-//   const { course_id, day, start_time, end_time, room } = req.body;
-
-//   const query = `INSERT INTO ClassSessions (course_id, day, start_time, end_time, room) VALUES (?, ?, ?, ?, ?)`;
-//   db.query(query, [course_id, day, start_time, end_time, room], (err, results) => {
-//     if (err) {
-//       return res.status(500).json({ success: false, message: 'Internal server error' });
-//     }
-//     res.json({ success: true, message: 'Class session added successfully' });
-//   });
-// });
-
-// // EventReports routes
-// app.get('/eventreports', (req, res) => {
-//   const query = `SELECT * FROM EventReports`;
-//   db.query(query, (err, results) => {
-//     if (err) {
-//       return res.status(500).json({ success: false, message: 'Internal server error' });
-//     }
-//     res.json({ success: true, data: results });
-//   });
-// });
-// app.post('/eventreports', (req, res) => {
-//   const { course_id, date, start_time, end_time, description } = req.body;
-
-//   // Konversi tanggal ke format yang sesuai
-//   const eventDate = new Date(date);
-//   const formattedDate = eventDate.toISOString().split('T')[0]; // Simpan tanggal dalam format YYYY-MM-DD
-
-//   console.log({ course_id, formattedDate, start_time, end_time, description });
-
-//   const query = `
-//     INSERT INTO EventReports (course_id, date, start_time, end_time, description) 
-//     VALUES (?, ?, ?, ?, ?)`;
-
-//   db.query(query, [course_id, formattedDate, start_time, end_time, description], (err, results) => {
-//     if (err) {
-//       return res.status(500).json({ success: false, message: 'Internal server error' });
-//     }
-//     res.json({ success: true, message: 'Event report added successfully' });
-//   });
-// });
-
-// app.get('/eventreports/:course_id', (req, res) => {
-//   const courseId = req.params.course_id;
-//   const query = `
-//     SELECT 
-//       er.description, 
-//       er.date, 
-//       er.start_time, 
-//       er.end_time 
-//     FROM 
-//       EventReports er
-//     JOIN 
-//       Courses c ON er.course_id = c.course_id
-//     WHERE 
-//       c.course_id = ?`;
-
-//   db.query(query, [courseId], (err, results) => {
-//     if (err) {
-//       return res.status(500).json({ success: false, message: 'Internal server error' });
-//     }
-//     res.json({ success: true, data: results });
-//   });
-// });
-
-
-
-
-
-// // Attendance routes
-// app.get('/attendance', (req, res) => {
-//   const query = `SELECT * FROM Attendance`;
-//   db.query(query, (err, results) => {
-//     if (err) {
-//       return res.status(500).json({ success: false, message: 'Internal server error' });
-//     }
-//     res.json({ success: true, data: results });
-//   });
-// });
-
-
-// app.post('/eventreports', (req, res) => {
-//   const { course_id, date, start_time, end_time, description } = req.body;
-//   const query = `
-//     INSERT INTO EventReports (course_id, date, start_time, end_time, description) 
-//     VALUES (?, ?, ?, ?, ?)`;
-
-//   db.query(query, [course_id, date, start_time, end_time, description], (err, results) => {
-//     if (err) {
-//       return res.status(500).json({ success: false, message: 'Internal server error' });
-//     }
-//     res.json({ success: true, message: 'Event report added successfully' });
-//   });
-// });
-
-
-
-
-
-// // Endpoint untuk mengambil semua status presensi berdasarkan report_id
-// app.get('/attendance/report/:report_id', (req, res) => {
-//   const reportId = req.params.report_id;
-
-//   const query = `
-//     SELECT 
-//       a.attendance_id,
-//       a.report_id,
-//       a.user_id,
-//       u.name AS nama_mahasiswa,
-//       m.nim,
-//       a.status
-//     FROM 
-//       Attendance a
-//     JOIN 
-//       Users u ON a.user_id = u.user_id
-//     JOIN 
-//       Mahasiswa m ON u.user_id = m.user_id
-//     WHERE 
-//       a.report_id = ?`;
-
-//   db.query(query, [reportId], (err, results) => {
-//     if (err) {
-//       console.error('Database query error:', err);
-//       return res.status(500).json({ success: false, message: 'Internal server error' });
-//     }
-//     res.json({ success: true, data: results });
-//   });
-// });
-
-
-
-
-
-
-
-
-// // Endpoint untuk mendapatkan saran dosen
-// app.get('/advisories', (req, res) => {
-//   const userId = req.cookies.user_id; // Ambil user_id dari cookies
-//   console.log('Cookies:', req.cookies); // Log cookies untuk debug
-//   if (!userId) {
-//     return res.status(401).json({ success: false, message: 'Unauthorized: No user_id in cookies' });
-//   }
-
-//   const sql = `
-//     SELECT 
-//       u.name AS nama_mahasiswa, 
-//       a.category, 
-//       a.content 
-//     FROM 
-//       Advisories a
-//     JOIN 
-//       Users u ON a.user_id = u.user_id
-//     WHERE 
-//       a.recipient_id = ?;
-//   `;
-
-//   db.query(sql, [userId], (err, results) => {
-//     if (err) {
-//       console.error('Query Error:', err); // Log query error untuk debug
-//       return res.status(500).json({ success: false, message: 'Query Error', error: err });
-//     }
-//     res.json({ success: true, data: results });
-//   });
-// });
-
-// // Exams routes
-// app.get('/exams', (req, res) => {
-//   const query = `SELECT * FROM Exams`;
-//   db.query(query, (err, results) => {
-//     if (err) {
-//       return res.status(500).json({ success: false, message: 'Internal server error' });
-//     }
-//     res.json({ success: true, data: results });
-//   });
-// });
-
-// app.post('/exams', (req, res) => {
-//   const { course_id, date, start_time, end_time, room } = req.body;
-
-//   const query = `INSERT INTO Exams (course_id, date, start_time, end_time, room) VALUES (?, ?, ?, ?, ?)`;
-//   db.query(query, [course_id, date, start_time, end_time, room], (err, results) => {
-//     if (err) {
-//       return res.status(500).json({ success: false, message: 'Internal server error' });
-//     }
-//     res.json({ success: true, message: 'Exam added successfully' });
-//   });
-// });
-
-// // ExamSupervisors routes
-// app.get('/examsupervisors', (req, res) => {
-//   const query = `SELECT * FROM ExamSupervisors`;
-//   db.query(query, (err, results) => {
-//     if (err) {
-//       return res.status(500).json({ success: false, message: 'Internal server error' });
-//     }
-//     res.json({ success: true, data: results });
-//   });
-// });
-
-// app.post('/examsupervisors', (req, res) => {
-//   const { exam_id, supervisor_id } = req.body;
-
-//   const query = `INSERT INTO ExamSupervisors (exam_id, supervisor_id) VALUES (?, ?)`;
-//   db.query(query, [exam_id, supervisor_id], (err, results) => {
-//     if (err) {
-//       return res.status(500).json({ success: false, message: 'Internal server error' });
-//     }
-//     res.json({ success: true, message: 'Exam supervisor added successfully' });
-//   });
-// });
-
-// // Grades routes
-// app.get('/grades', (req, res) => {
-//   const query = `SELECT * FROM Grades`;
-//   db.query(query, (err, results) => {
-//     if (err) {
-//       return res.status(500).json({ success: false, message: 'Internal server error' });
-//     }
-//     res.json({ success: true, data: results });
-//   });
-// });
-
-// app.post('/grades', (req, res) => {
-//   const { user_id, course_id, uts_grade, uas_grade } = req.body;
-
-//   const query = `INSERT INTO Grades (user_id, course_id, uts_grade, uas_grade) VALUES (?, ?, ?, ?)`;
-//   db.query(query, [user_id, course_id, uts_grade, uas_grade], (err, results) => {
-//     if (err) {
-//       return res.status(500).json({ success: false, message: 'Internal server error' });
-//     }
-//     res.json({ success: true, message: 'Grade added successfully' });
-//   });
-// });
-
-
-
-
-// app.post('/guidances', (req, res) => {
-//   const { user_id, dosen_id, topic, title, status } = req.body;
-
-//   const query = `INSERT INTO Guidances (user_id, dosen_id, topic, title, status) VALUES (?, ?, ?, ?, ?)`;
-//   db.query(query, [user_id, dosen_id, topic, title, status], (err, results) => {
-//     if (err) {
-//       return res.status(500).json({ success: false, message: 'Internal server error' });
-//     }
-//     res.json({ success: true, message: 'Guidance added successfully' });
-//   });
-// });
-
-// app.put('/guidances/:guidance_id/status', (req, res) => {
-//   const guidanceId = req.params.guidance_id;
-//   const { status } = req.body;
-//   const query = `UPDATE Guidances SET status = ? WHERE guidance_id = ?`;
-
-//   db.query(query, [status, guidanceId], (err, results) => {
-//     if (err) {
-//       return res.status(500).json({ success: false, message: 'Internal server error' });
-//     }
-//     res.json({ success: true, message: 'Status updated successfully' });
-//   });
-// });
-
-
-
-
-
-// // GuidanceSlotSelections routes
-// app.get('/guidanceslotselections/:slot_id', (req, res) => {
-//   const slotId = req.params.slot_id;
-//   const query = `
-//     SELECT 
-//       u.user_id, 
-//       u.name 
-//     FROM 
-//       GuidanceSlotSelections gss
-//     JOIN 
-//       Users u ON gss.user_id = u.user_id
-//     WHERE 
-//       gss.slot_id = ?`;
-
-//   db.query(query, [slotId], (err, results) => {
-//     if (err) {
-//       return res.status(500).json({ success: false, message: 'Internal server error' });
-//     }
-//     res.json({ success: true, data: results });
-//   });
-// });
-
-// app.post('/guidanceslotselections', (req, res) => {
-//   const { slot_id, user_id } = req.body;
-
-//   const query = `INSERT INTO GuidanceSlotSelections (slot_id, user_id) VALUES (?, ?)`;
-//   db.query(query, [slot_id, user_id], (err, results) => {
-//     if (err) {
-//       return res.status(500).json({ success: false, message: 'Internal server error' });
-//     }
-//     res.json({ success: true, message: 'Guidance slot selection added successfully' });
-//   });
-// });
-
-
-
-// // Advisories routes
-// app.get('/advisories', (req, res) => {
-//   const query = `SELECT * FROM Advisories`;
-//   db.query(query, (err, results) => {
-//     if (err) {
-//       return res.status(500).json({ success: false, message: 'Internal server error' });
-//     }
-//     res.json({ success: true, data: results });
-//   });
-// });
-
-// app.post('/advisories', (req, res) => {
-//   const { user_id, recipient_id, category, content } = req.body;
-
-//   const query = `INSERT INTO Advisories (user_id, recipient_id, category, content) VALUES (?, ?, ?, ?)`;
-//   db.query(query, [user_id, recipient_id, category, content], (err, results) => {
-//     if (err) {
-//       return res.status(500).json({ success: false, message: 'Internal server error' });
-//     }
-//     res.json({ success: true, message: 'Advisory added successfully' });
-//   });
-// });
-
-// // CourseRequests routes
-// app.get('/courserequests', (req, res) => {
-//   const query = `SELECT * FROM CourseRequests`;
-//   db.query(query, (err, results) => {
-//     if (err) {
-//       return res.status(500).json({ success: false, message: 'Internal server error' });
-//     }
-//     res.json({ success: true, data: results });
-//   });
-// });
-
-
-
-
-// app.get('/attendance/report/:report_id/user/:user_id', (req, res) => {
-//   const { report_id, user_id } = req.params;
-//   const query = `SELECT * FROM Attendance WHERE report_id = ? AND user_id = ?`;
-
-//   db.query(query, [report_id, user_id], (err, results) => {
-//     if (err) {
-//       console.error('Database query error:', err);
-//       return res.status(500).json({ success: false, message: 'Internal server error', error: err.message });
-//     }
-//     res.json({ success: true, data: results });
-//   });
-// });
-
-
-
-
-
-
-
-
-
 
 app.listen(port, () => {
   console.log(`Server running on http://localhost:${port}`);
