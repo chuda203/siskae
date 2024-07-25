@@ -289,14 +289,12 @@ app.get('/schedule/student', (req, res) => {
 // });
 
 // POV mahasiswa, get berita acara sesuai jam saat ini
+const moment = require('moment-timezone');
+
 app.get('/student/activeeventreport', (req, res) => {
   const userId = req.query.user_id;
-  const localTime = new Date();
-  
-  // Konversi waktu lokal ke UTC
-  const utcTime = new Date(localTime.toISOString());
-
-  const currentTime = utcTime.toTimeString().split(' ')[0];
+  const localTime = moment();
+  const utcTime = localTime.utc().format('HH:mm:ss'); // Format waktu dalam UTC
 
   const query = `
     SELECT 
@@ -318,7 +316,7 @@ app.get('/student/activeeventreport', (req, res) => {
       AND er.start_time <= ? 
       AND er.end_time >= ?`;
 
-  db.query(query, [userId, currentTime, currentTime], (err, results) => {
+  db.query(query, [userId, utcTime, utcTime], (err, results) => {
     if (err) {
       console.error('Database query error:', err);
       return res.status(500).json({ success: false, message: 'Internal server error', error: err });
