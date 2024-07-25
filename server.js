@@ -50,8 +50,8 @@ db.connect(err => {
 
 
 // Endpoint bermasalah, POV student, get slot bimbingan
-app.get('/guidanceslots/student/:guidance_id', (req, res) => {
-  const guidanceId = req.params.guidance_id || req.path.split('/')[3];
+app.get('/guidanceslots/student', (req, res) => {
+  const guidanceId = req.query.guidance_id || req.path.split('/')[3];
   console.log(`Received request for guidance ID: ${guidanceId}`);
 
   const query = `
@@ -208,8 +208,13 @@ app.get('/guidances/student', (req, res) => {
 // });
 
 // POV mahasiswa, get jadwal kuliah
-app.get('/schedule/:user_id/:semester', (req, res) => {
-  const { user_id, semester } = req.params;
+
+app.get('/schedule/student', (req, res) => {
+  const { user_id, semester } = req.query;
+
+  if (!user_id || !semester) {
+    return res.status(400).json({ success: false, message: 'Missing user_id or semester' });
+  }
 
   const query = `
     SELECT 
@@ -244,6 +249,44 @@ app.get('/schedule/:user_id/:semester', (req, res) => {
     res.json({ success: true, data: results });
   });
 });
+
+
+// app.get('/schedule/:user_id/:semester', (req, res) => {
+//   const { user_id, semester } = req.params;
+
+//   const query = `
+//     SELECT 
+//       cr.user_id,
+//       cr.course_id,
+//       c.name AS course_name,
+//       c.code AS course_code,
+//       c.semester,
+//       c.credits,
+//       cs.day,
+//       cs.start_time,
+//       cs.end_time,
+//       cs.room
+//     FROM 
+//       courserequests cr
+//     JOIN 
+//       courses c ON cr.course_id = c.course_id
+//     LEFT JOIN 
+//       classsessions cs ON c.course_id = cs.course_id
+//     WHERE 
+//       cr.user_id = ? 
+//       AND cr.current_semester = ? 
+//       AND cr.status = 'Approved'
+//     ORDER BY 
+//       cs.day, cs.start_time;
+//   `;
+
+//   db.query(query, [user_id, semester], (err, results) => {
+//     if (err) {
+//       return res.status(500).json({ success: false, message: 'Internal server error' });
+//     }
+//     res.json({ success: true, data: results });
+//   });
+// });
 
 // POV mahasiswa, get berita acara sesuai jam saat ini
 app.get('/activeeventreport/:user_id', (req, res) => {

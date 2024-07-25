@@ -126,7 +126,7 @@ export default {
       const userId = VueCookies.get('user_id');
       const currentSemester = VueCookies.get('current_semester');
       try {
-        const response = await axios.get(`https://unified-atom-423009-a1.et.r.appspot.com/schedule/${userId}/${currentSemester}`);
+        const response = await axios.get(`https://unified-atom-423009-a1.et.r.appspot.com/schedule/student?user_id=${userId}&semester=${currentSemester}`);
         if (response.data.success) {
           this.jadwalKuliah = response.data.data;
         }
