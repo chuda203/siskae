@@ -140,8 +140,8 @@ app.post('/login', async (req, res) => {
 });
 
 // POV mahasiswa, get bimbingan 
-app.get('/guidances/student/:user_id', (req, res) => {
-  const userId = req.params.user_id;
+app.get('/guidances/student', (req, res) => {
+  const userId = req.query.user_id; // Mengambil user_id dari query parameters
   console.log(`Received request for user ID: ${userId}`);
 
   const query = `
@@ -172,6 +172,40 @@ app.get('/guidances/student/:user_id', (req, res) => {
     res.json({ success: true, data: results });
   });
 });
+
+
+// app.get('/guidances/student/:user_id', (req, res) => {
+//   const userId = req.params.user_id;
+//   console.log(`Received request for user ID: ${userId}`);
+
+//   const query = `
+//     SELECT 
+//       g.guidance_id,
+//       u.name AS nama_dosen, 
+//       d.NIDN, 
+//       g.topic, 
+//       g.title, 
+//       g.status 
+//     FROM 
+//       guidances g
+//     JOIN 
+//       users u ON g.dosen_id = u.user_id
+//     JOIN 
+//       dosen d ON g.dosen_id = d.user_id
+//     JOIN 
+//       mahasiswa m ON g.user_id = m.user_id
+//     WHERE 
+//       g.user_id = ?`;
+
+//   db.query(query, [userId], (err, results) => {
+//     if (err) {
+//       console.error('Database query error:', err);
+//       return res.status(500).json({ success: false, message: 'Internal server error' });
+//     }
+//     console.log('Query results:', results);
+//     res.json({ success: true, data: results });
+//   });
+// });
 
 // POV mahasiswa, get jadwal kuliah
 app.get('/schedule/:user_id/:semester', (req, res) => {

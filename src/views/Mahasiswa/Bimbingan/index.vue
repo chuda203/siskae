@@ -173,7 +173,7 @@ export default {
         return;
       }
 
-      fetch(`https://unified-atom-423009-a1.et.r.appspot.com/guidances/student/${userId}`)
+      fetch(`https://unified-atom-423009-a1.et.r.appspot.com/guidances/student?user_id=${userId}`)
         .then(response => response.json())
         .then(data => {
           if (data.success) {
