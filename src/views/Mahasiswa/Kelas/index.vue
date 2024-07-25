@@ -137,7 +137,7 @@ export default {
     async fetchEventReports() {
       const userId = VueCookies.get('user_id');
       try {
-        const response = await axios.get(`https://unified-atom-423009-a1.et.r.appspot.com/activeeventreport/${userId}`);
+        const response = await axios.get(`https://unified-atom-423009-a1.et.r.appspot.com/student/activeeventreport?user_id=${userId}`);
         if (response.data.success) {
           this.eventReports = response.data.data;
         }

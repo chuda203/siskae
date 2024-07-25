@@ -289,9 +289,14 @@ app.get('/schedule/student', (req, res) => {
 // });
 
 // POV mahasiswa, get berita acara sesuai jam saat ini
-app.get('/activeeventreport/:user_id', (req, res) => {
-  const userId = req.params.user_id;
-  const currentTime = new Date().toTimeString().split(' ')[0];
+app.get('/student/activeeventreport', (req, res) => {
+  const userId = req.query.user_id;
+  const localTime = new Date();
+  
+  // Konversi waktu lokal ke UTC
+  const utcTime = new Date(localTime.toISOString());
+
+  const currentTime = utcTime.toTimeString().split(' ')[0];
 
   const query = `
     SELECT 
@@ -321,6 +326,40 @@ app.get('/activeeventreport/:user_id', (req, res) => {
     res.json({ success: true, data: results });
   });
 });
+
+
+// app.get('/student/activeeventreport', (req, res) => {
+//   const userId = req.query.user_id;
+//   const currentTime = new Date().toTimeString().split(' ')[0];
+
+//   const query = `
+//     SELECT 
+//       er.report_id,
+//       er.course_id,
+//       er.description,
+//       er.date,
+//       er.start_time,
+//       er.end_time
+//     FROM 
+//       eventreports er
+//     JOIN 
+//       courses c ON er.course_id = c.course_id
+//     JOIN 
+//       courserequests cr ON c.course_id = cr.course_id
+//     WHERE 
+//       cr.user_id = ? 
+//       AND er.date = CURDATE() 
+//       AND er.start_time <= ? 
+//       AND er.end_time >= ?`;
+
+//   db.query(query, [userId, currentTime, currentTime], (err, results) => {
+//     if (err) {
+//       console.error('Database query error:', err);
+//       return res.status(500).json({ success: false, message: 'Internal server error', error: err });
+//     }
+//     res.json({ success: true, data: results });
+//   });
+// });
 
 // POV mahasiswa, get mata kuliah sesuai prodi
 app.get('/courses/:department_id', (req, res) => {
