@@ -169,8 +169,8 @@ export default {
       return this.eventReports.some(event => {
         const eventDate = moment(event.date).tz('Asia/Jakarta').format('YYYY-MM-DD');
         const nowDate = now.format('YYYY-MM-DD');
-        const startTime = moment(event.start_time, 'HH:mm:ss').tz('Asia/Jakarta');
-        const endTime = moment(event.end_time, 'HH:mm:ss').tz('Asia/Jakarta');
+        const startTime = moment(`${eventDate} ${event.start_time}`, 'YYYY-MM-DD HH:mm:ss').tz('Asia/Jakarta');
+        const endTime = moment(`${eventDate} ${event.end_time}`, 'YYYY-MM-DD HH:mm:ss').tz('Asia/Jakarta');
 
         console.log(`Checking event: ${event.course_id}, Date: ${eventDate}, Now Date: ${nowDate}, Start Time: ${startTime.format('HH:mm:ss')}, End Time: ${endTime.format('HH:mm:ss')}`);
         
